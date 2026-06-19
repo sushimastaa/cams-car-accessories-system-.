@@ -14,3 +14,5 @@ Thumbs.db
 # Optional: Supabase CLI local state (if you initialized supabase locally)
 supabase/.temp/
 supabase/.branches/
+
+#final
