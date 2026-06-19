@@ -222,43 +222,47 @@
         </svg>
     </button>
 
-    <script>
-        // Mock Data (from shop.html, extended with subCategory for filtering)
-        const baseProducts = [
-            { id: 1, name: "10\" Android Player", category: "Android Player", price: 150.00, rating: 4.5, image: "images/android_player.jpg", description: "High-definition 10-inch Android Player with GPS and Bluetooth. Features a responsive touchscreen and support for various media formats.", subCategory: "interior" },
-            { id: 2, name: "Bass Pro Speakers", category: "Speaker", price: 85.00, rating: 4.2, image: "images/bass_pro_speakers.jpg", description: "Deep bass and crystal clear highs for the ultimate audio experience. Easy to install and compatible with most car audio systems.", subCategory: "interior" },
-            { id: 3, name: "All-Weather Floor Mats", category: "Floor Mats", price: 45.00, rating: 4.8, image: "images/floor_mats.jpg", description: "Durable rubber mats designed to protect your vehicle's floor from dirt, mud, and water. Easy to clean and maintain.", subCategory: "interior" },
-            { id: 4, name: "LED Headlight Bulbs", category: "Headlamps", price: 120.00, rating: 4.6, image: "images/led_headlamps.jpg", description: "Bright white LED bulbs for superior visibility at night. Energy efficient and long-lasting performance.", subCategory: "exterior" },
-            { id: 5, name: "Silicone Wiper Blades", category: "Wiper", price: 25.00, rating: 4.0, image: "images/wiper_blades.jpg", description: "Long-lasting silicone blades that repel water and ensure a clear view during heavy rain. Quiet operation.", subCategory: "exterior" },
-            { id: 6, name: "HD Reverse Camera", category: "Camera", price: 60.00, rating: 4.3, image: "images/reverse_camera.jpg", description: "Wide-angle HD camera with night vision for safe parking. Waterproof design and easy integration with dashboard displays.", subCategory: "exterior" },
-            { id: 7, name: "Custom Plate Fonts", category: "Plate Number Fonts", price: 15.00, rating: 5.0, image: "images/plate_fonts.jpg", description: "Stylish and legal font styles for your vehicle registration plate. High-quality material that resists fading.", subCategory: "exterior" },
-            { id: 8, name: "Sony Component Speakers", category: "Speaker", price: 110.00, rating: 4.7, image: "images/sony_speakers.jpg", description: "Premium component system with separate tweeters and woofers for a balanced soundstage.", subCategory: "interior" },
-            { id: 9, name: "Premium Carpet Mats", category: "Floor Mats", price: 35.00, rating: 4.1, image: "images/carpet_mats.jpg", description: "Soft, plush carpet mats that add a touch of luxury to your interior. Anti-slip backing keeps them in place.", subCategory: "interior" },
-            { id: 10, name: "Halogen Headlamps", category: "Headlamps", price: 40.00, rating: 3.8, image: "images/halogen_headlamps.jpg", description: "Standard replacement halogen bulbs for reliable lighting. Cost-effective solution for headlight replacement.", subCategory: "exterior" },
-            { id: 11, name: "Performance Brake Kit", category: "Brakes", price: 299.00, rating: 4.9, image: "images/performance_brake_kit.jpg", description: "High-performance brake kit for enhanced stopping power.", subCategory: "performance" },
-            { id: 12, name: "Sport Suspension Kit", category: "Suspension", price: 189.00, rating: 4.7, image: "images/sport_suspension.jpg", description: "Upgrade your car's handling with this sport suspension kit.", subCategory: "performance" },
-            { id: 13, name: "Carbon Fiber Dash Kit", category: "Interior", price: 129.00, rating: 4.4, image: "images/carbon_fiber_dash_kit.jpg", description: "Stylish carbon fiber interior trim for a modern look.", subCategory: "interior" }
-        ];
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
 
-        const localInventory = JSON.parse(localStorage.getItem('inventory')) || [];
-        const allProducts = [...localInventory, ...baseProducts];
+    <script>
+        let allProducts = [];
+
+        async function fetchTopRatedProducts() {
+            const scrollContainer = document.querySelector('.scroll-container');
+            
+            const { data: products, error } = await window.supabase
+                .from('products')
+                .select('*')
+                .order('rating', { ascending: false })
+                .limit(10); // Fetch top 10
+
+            if (error) {
+                console.error('Error fetching products:', error);
+                scrollContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">Failed to load products.</p>';
+                return;
+            }
+
+            allProducts = products;
+            renderTopRatedProducts('all');
+        }
 
         function renderTopRatedProducts(filterCategory = 'all') {
             const scrollContainer = document.querySelector('.scroll-container');
-            scrollContainer.innerHTML = ''; // Clear existing products
+            scrollContainer.innerHTML = ''; 
 
-            let productsToDisplay = [...allProducts]; // Use a copy of all products
+            let productsToDisplay = [...allProducts];
 
-            // Sort by rating (descending) for "Top Rated"
-            productsToDisplay.sort((a, b) => b.rating - a.rating);
-
-            // Apply category filter if not 'all'
             if (filterCategory !== 'all') {
-                productsToDisplay = productsToDisplay.filter(p => p.subCategory === filterCategory);
+                productsToDisplay = productsToDisplay.filter(p => {
+                    const cat = (p.category || '').toLowerCase();
+                    if (filterCategory === 'performance') return cat.includes('brake') || cat.includes('suspension');
+                    if (filterCategory === 'exterior') return cat.includes('headlamp') || cat.includes('wiper') || cat.includes('camera') || cat.includes('plate');
+                    if (filterCategory === 'interior') return cat.includes('player') || cat.includes('speaker') || cat.includes('mat') || cat.includes('interior');
+                    return false;
+                });
             }
-
-            // Limit to a reasonable number for the home page, e.g., top 8
-            productsToDisplay = productsToDisplay.slice(0, 8);
 
             if (productsToDisplay.length === 0) {
                 scrollContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No products found in this category.</p>';
@@ -268,17 +272,16 @@
             productsToDisplay.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
-                card.dataset.category = p.subCategory; // Add data-category for filtering
                 card.innerHTML = `
                     <div class="product-image" onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">
-                        <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                        <img src="${p.image || 'images/placeholder.jpg'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="product-info">
                         <h3 onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">${p.name}</h3>
-                        <p>${p.description ? p.description.substring(0, 50) + '...' : ''}</p>
+                        <p>${p.description ? p.description.substring(0, 50) + '...' : p.category}</p>
                         <div class="product-footer">
-                            <span class="price">RM${p.price.toFixed(2)}</span>
-                            <button class="btn btn-primary" style="width: auto; margin: 0; padding: 8px 16px; font-size: 0.85rem;" onclick="addToCart(${p.id}); event.stopPropagation();">Add</button>
+                            <span class="price">RM${parseFloat(p.price).toFixed(2)}</span>
+                            <button class="btn btn-primary" style="width: auto; margin: 0; padding: 8px 16px; font-size: 0.85rem;" onclick="addToCart('${p.id}'); event.stopPropagation();">Add</button>
                         </div>
                     </div>
                 `;
@@ -288,41 +291,48 @@
 
         function filterSelection(category, btnElement) {
             const buttons = document.querySelectorAll('.filter-btn');
-
-            // Update active button
             buttons.forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
-
             renderTopRatedProducts(category);
         }
 
-        function searchProducts() {
+        async function searchProducts() {
             const input = document.getElementById('searchInput');
             const filter = input.value.toUpperCase();
             const scrollContainer = document.querySelector('.scroll-container');
-            scrollContainer.innerHTML = ''; // Clear current display
+            
+            if (!filter) {
+                renderTopRatedProducts('all');
+                return;
+            }
 
-            let filteredProducts = allProducts.filter(p => p.name.toUpperCase().includes(filter));
+            scrollContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">Searching...</p>';
 
-            if (filteredProducts.length === 0) {
+            const { data: filteredProducts, error } = await window.supabase
+                .from('products')
+                .select('*')
+                .ilike('name', `%${filter}%`)
+                .limit(10);
+
+            if (error || !filteredProducts || filteredProducts.length === 0) {
                 scrollContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No products found matching your search.</p>';
                 return;
             }
 
+            scrollContainer.innerHTML = '';
             filteredProducts.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
-                card.dataset.category = p.subCategory; // Add data-category for filtering
                 card.innerHTML = `
                     <div class="product-image" onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">
-                        <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                        <img src="${p.image || 'images/placeholder.jpg'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="product-info">
                         <h3 onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">${p.name}</h3>
-                        <p>${p.description ? p.description.substring(0, 50) + '...' : ''}</p>
+                        <p>${p.category}</p>
                         <div class="product-footer">
-                            <span class="price">RM${p.price.toFixed(2)}</span>
-                            <button class="btn btn-primary" style="width: auto; margin: 0; padding: 8px 16px; font-size: 0.85rem;" onclick="addToCart(${p.id}); event.stopPropagation();">Add</button>
+                            <span class="price">RM${parseFloat(p.price).toFixed(2)}</span>
+                            <button class="btn btn-primary" style="width: auto; margin: 0; padding: 8px 16px; font-size: 0.85rem;" onclick="addToCart('${p.id}'); event.stopPropagation();">Add</button>
                         </div>
                     </div>
                 `;
@@ -330,29 +340,40 @@
             });
         }
 
-        // Call renderTopRatedProducts on page load
-        renderTopRatedProducts();
-
-        function addToCart(productId) {
-            const p = allProducts.find(prod => prod.id === productId);
-            if (!p) return;
-
-            let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
-            const existingItem = cart.find(item => item.id == productId);
-
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({
-                    id: productId.toString(), name: p.name, price: p.price,
-                    image: p.image, quantity: 1
-                });
+        async function addToCart(productId) {
+            const session = await getSession();
+            if (!session) {
+                alert('Please log in to add items to your cart.');
+                window.location.href = 'index.html';
+                return;
             }
 
-            localStorage.setItem('shoppingCart', JSON.stringify(cart));
-            alert(p.name + ' added to cart!');
+            const userId = session.user.id;
+
+            const { data: existingCart, error: fetchError } = await window.supabase
+                .from('cart')
+                .select('id, quantity')
+                .eq('user_id', userId)
+                .eq('product_id', productId)
+                .maybeSingle();
+
+            if (existingCart) {
+                const { error: updateError } = await window.supabase
+                    .from('cart')
+                    .update({ quantity: existingCart.quantity + 1 })
+                    .eq('id', existingCart.id);
+                if (!updateError) alert('Cart updated successfully!');
+            } else {
+                const { error: insertError } = await window.supabase
+                    .from('cart')
+                    .insert([{ user_id: userId, product_id: productId, quantity: 1 }]);
+                if (!insertError) alert('Item added to cart!');
+            }
         }
-        
+
+        // Call fetch on load
+        document.addEventListener('DOMContentLoaded', fetchTopRatedProducts);
+
         // Theme Toggle Logic
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');

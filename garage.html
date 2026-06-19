@@ -147,7 +147,7 @@
             <a href="garage.html" style="color: var(--text-main);">Garage</a>
             <a href="cart.html">Cart</a>
             <a href="settings.html" class="avatar-icon" title="Settings">👤</a>
-            <a href="index.html">Logout</a>
+            <a href="index.html" onclick="handleLogout(); return false;">Logout</a>
         </div>
     </nav>
 
@@ -161,13 +161,25 @@
             <!-- Add Vehicle Form -->
             <div class="card">
                 <h2>Add a Vehicle</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Search our database for vehicles verified by our team.</p>
-                <div class="form-group">
-                    <input type="text" id="vehicleSearch" class="input-field-garage" placeholder="Start typing Make or Model..." oninput="searchAvailableVehicles()">
-                </div>
-                <div id="searchResults" class="vehicle-list" style="max-height: 250px; overflow-y: auto; display: none; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-top: 10px; background: var(--input-bg);">
-                    <!-- Search results will appear here -->
-                </div>
+                <form id="addVehicleForm" onsubmit="addVehicleToGarage(event)">
+                    <div class="form-group">
+                        <label class="form-label">Make</label>
+                        <input type="text" id="car_make" class="input-field-garage" placeholder="e.g. Toyota" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Model</label>
+                        <input type="text" id="car_model" class="input-field-garage" placeholder="e.g. Vios" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Year</label>
+                        <input type="number" id="car_year" class="input-field-garage" placeholder="e.g. 2024" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Plate Number (Optional)</label>
+                        <input type="text" id="plate_number" class="input-field-garage" placeholder="e.g. ABC 1234">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Save to Garage</button>
+                </form>
             </div>
 
             <!-- Vehicle List -->
@@ -175,7 +187,7 @@
                 <h2>My Vehicles</h2>
                 <div id="vehicleList" class="vehicle-list">
                     <!-- Vehicles will be injected here -->
-                    <p style="color: var(--text-muted);">No vehicles added yet.</p>
+                    <p style="color: var(--text-muted);">Loading vehicles...</p>
                 </div>
             </div>
         </div>
@@ -196,7 +208,7 @@
                 <div class="form-group" style="margin: 0;">
                     <label class="form-label">Select Part</label>
                     <select id="partSelect" class="input-field-garage" required>
-                        <option value="">-- Select Part --</option>
+                        <option value="">-- Loading Parts --</option>
                     </select>
                 </div>
                 <button onclick="checkCompatibility()" class="btn btn-primary" style="width: auto; margin: 0;">Check Fitment</button>
@@ -213,145 +225,51 @@
         </svg>
     </button>
 
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+
     <script>
-        // Initialize Sample Vehicles if Admin Database is Empty
-        function initializeSampleVehicles() {
-            const existingVehicles = JSON.parse(localStorage.getItem('availableVehicles')) || [];
-            if (existingVehicles.length === 0) {
-                const sampleVehicles = [
-                    { id: 1001, year: 2024, make: "Toyota", model: "Vios" },
-                    { id: 1002, year: 2023, make: "Toyota", model: "Avanza" },
-                    { id: 1003, year: 2022, make: "Honda", model: "City" },
-                    { id: 1004, year: 2023, make: "Honda", model: "Civic" },
-                    { id: 1005, year: 2024, make: "Nissan", model: "Almera" },
-                    { id: 1006, year: 2022, make: "Proton", model: "X50" },
-                    { id: 1007, year: 2023, make: "Perodua", model: "Myvi" },
-                    { id: 1008, year: 2024, make: "Hyundai", model: "i10" }
-                ];
-                localStorage.setItem('availableVehicles', JSON.stringify(sampleVehicles));
-            }
-        }
+        let myVehicles = [];
+        let allProducts = [];
 
-        // Mock Data (from shop.html)
-        const baseProducts = [
-            { id: 1, name: "10\" Android Player", category: "Android Player", price: 150.00, rating: 4.5, image: "images/android_player.jpg", compatibility: "Universal" },
-            { id: 2, name: "Bass Pro Speakers", category: "Speaker", price: 85.00, rating: 4.2, image: "images/bass_pro_speakers.jpg", compatibility: "Universal" },
-            { id: 3, name: "All-Weather Floor Mats", category: "Floor Mats", price: 45.00, rating: 4.8, image: "images/floor_mats.jpg", compatibility: "Universal" },
-            { id: 4, name: "LED Headlight Bulbs", category: "Headlamps", price: 120.00, rating: 4.6, image: "images/led_headlamps.jpg", compatibility: "Universal" },
-            { id: 5, name: "Silicone Wiper Blades", category: "Wiper", price: 25.00, rating: 4.0, image: "images/wiper_blades.jpg", compatibility: "Universal" },
-            { id: 6, name: "HD Reverse Camera", category: "Camera", price: 60.00, rating: 4.3, image: "images/reverse_camera.jpg", compatibility: "Universal" },
-            { id: 7, name: "Custom Plate Fonts", category: "Plate Number Fonts", price: 15.00, rating: 5.0, image: "images/plate_fonts.jpg", compatibility: "Universal" },
-            { id: 8, name: "Sony Component Speakers", category: "Speaker", price: 110.00, rating: 4.7, image: "images/sony_speakers.jpg", compatibility: "Universal" },
-            { id: 9, name: "Premium Carpet Mats", category: "Floor Mats", price: 35.00, rating: 4.1, image: "images/carpet_mats.jpg", compatibility: "Universal" },
-            { id: 10, name: "Halogen Headlamps", category: "Headlamps", price: 40.00, rating: 3.8, image: "images/halogen_headlamps.jpg", compatibility: "Universal" },
-        ];
-        const localInventory = JSON.parse(localStorage.getItem('inventory')) || [];
-        const allProducts = [...localInventory, ...baseProducts];
-
-        // --- Garage Logic ---
-        let vehicles = [];
-
-        async function renderVehicles() {
-            // Load user's own collection from Local Storage
-            const localVehicles = JSON.parse(localStorage.getItem('userGarageVehicles')) || [];
-            const response = await fetch('api_garage.php').catch(() => null);
-            let apiVehicles = [];
-            if (response && response.ok) apiVehicles = await response.json();
-            
-            vehicles = [...localVehicles, ...apiVehicles];
-            
-            const list = document.getElementById('vehicleList');
-            const select = document.getElementById('vehicleSelect');
-            
-            list.innerHTML = '';
-            select.innerHTML = '<option value="">-- Select Vehicle --</option>';
-
-            if (vehicles.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-muted);">No vehicles added yet.</p>';
+        async function fetchGarage() {
+            const session = await getSession();
+            if (!session) {
+                window.location.href = 'index.html';
                 return;
             }
 
-            vehicles.forEach((v, index) => {
-                // Add to list
-                list.innerHTML += `
-                    <div class="vehicle-card">
-                        <div class="vehicle-info">
-                            <h3>${v.year} ${v.make} ${v.model}</h3>
-                            <p>Added to Garage</p>
-                        </div>
-                        <button class="btn-remove" onclick="removeVehicle(${v.id})">Remove</button>
-                    </div>
-                `;
-                // Add to dropdown
-                select.innerHTML += `<option value="${index}">${v.year} ${v.make} ${v.model}</option>`;
-            });
-        }
+            const { data: vehicles, error } = await window.supabase
+                .from('garage')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('car_year', { ascending: false });
 
-        function searchAvailableVehicles() {
-            const query = document.getElementById('vehicleSearch').value.toLowerCase();
-            const resultsDiv = document.getElementById('searchResults');
-            const adminDatabase = JSON.parse(localStorage.getItem('availableVehicles')) || [];
-
-            if (query.trim() === '') {
-                resultsDiv.style.display = 'none';
+            if (error) {
+                console.error("Error fetching garage:", error);
+                document.getElementById('vehicleList').innerHTML = '<p style="color: #ef4444;">Error loading vehicles.</p>';
                 return;
             }
 
-            const filtered = adminDatabase.filter(v => 
-                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(query)
-            );
-
-            resultsDiv.innerHTML = '';
-            if (filtered.length === 0) {
-                resultsDiv.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No matching vehicles found.</p>';
-            } else {
-                filtered.forEach(v => {
-                    const div = document.createElement('div');
-                    div.className = 'vehicle-card';
-                    div.style.cursor = 'pointer';
-                    div.style.marginBottom = '8px';
-                    div.style.background = 'var(--card-bg)';
-                    div.innerHTML = `
-                        <div class="vehicle-info">
-                            <h3>${v.year} ${v.make} ${v.model}</h3>
-                        </div>
-                        <button class="btn btn-primary" style="width: auto; padding: 4px 12px; font-size: 0.8rem;">Add</button>
-                    `;
-                    div.onclick = () => addVehicleToGarage(v);
-                    resultsDiv.appendChild(div);
-                });
-            }
-            resultsDiv.style.display = 'block';
-        }
-
-        function addVehicleToGarage(vehicle) {
-            let myVehicles = JSON.parse(localStorage.getItem('userGarageVehicles')) || [];
-            if (myVehicles.some(v => v.id === vehicle.id)) {
-                alert('This vehicle is already in your garage.');
-                return;
-            }
-            myVehicles.push(vehicle);
-            localStorage.setItem('userGarageVehicles', JSON.stringify(myVehicles));
-            document.getElementById('vehicleSearch').value = '';
-            document.getElementById('searchResults').style.display = 'none';
+            myVehicles = vehicles || [];
             renderVehicles();
         }
 
-        async function removeVehicle(id) {
-            // Remove from local storage
-            let myVehicles = JSON.parse(localStorage.getItem('userGarageVehicles')) || [];
-            myVehicles = myVehicles.filter(v => v.id !== id);
-            localStorage.setItem('userGarageVehicles', JSON.stringify(myVehicles));
+        async function fetchProductsForDropdown() {
+            const { data: products, error } = await window.supabase
+                .from('products')
+                .select('id, name, compatibility');
 
-            // Try API if it exists
-            await fetch(`api_garage.php?id=${id}`, { method: 'DELETE' }).catch(() => null);
-            renderVehicles();
-        }
+            if (error) {
+                console.error("Error fetching products:", error);
+                return;
+            }
 
-        function renderPartsDropdown() {
+            allProducts = products || [];
             const partSelect = document.getElementById('partSelect');
-            partSelect.innerHTML = '<option value="">-- Select Part --</option>'; // Clear existing options
-
+            partSelect.innerHTML = '<option value="">-- Select Part --</option>'; 
+            
             allProducts.forEach(p => {
                 const option = document.createElement('option');
                 option.value = p.id;
@@ -359,26 +277,97 @@
                 partSelect.appendChild(option);
             });
         }
-        // --- Compatibility Logic ---
+
+        function renderVehicles() {
+            const list = document.getElementById('vehicleList');
+            const select = document.getElementById('vehicleSelect');
+            
+            list.innerHTML = '';
+            select.innerHTML = '<option value="">-- Select Vehicle --</option>';
+
+            if (myVehicles.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted);">No vehicles added yet.</p>';
+                return;
+            }
+
+            myVehicles.forEach((v, index) => {
+                list.innerHTML += `
+                    <div class="vehicle-card">
+                        <div class="vehicle-info">
+                            <h3>${v.car_year} ${v.car_make} ${v.car_model}</h3>
+                            <p>${v.plate_number ? 'Plate: ' + v.plate_number : 'Added to Garage'}</p>
+                        </div>
+                        <button class="btn-remove" onclick="removeVehicle('${v.id}')">Remove</button>
+                    </div>
+                `;
+                select.innerHTML += `<option value="${index}">${v.car_year} ${v.car_make} ${v.car_model}</option>`;
+            });
+        }
+
+        async function addVehicleToGarage(e) {
+            e.preventDefault();
+            const session = await getSession();
+            if (!session) return;
+
+            const make = document.getElementById('car_make').value;
+            const model = document.getElementById('car_model').value;
+            const year = parseInt(document.getElementById('car_year').value);
+            const plate = document.getElementById('plate_number').value;
+
+            const { data, error } = await window.supabase
+                .from('garage')
+                .insert([{
+                    user_id: session.user.id,
+                    car_make: make,
+                    car_model: model,
+                    car_year: year,
+                    plate_number: plate
+                }]);
+
+            if (error) {
+                alert("Error adding vehicle: " + error.message);
+            } else {
+                document.getElementById('addVehicleForm').reset();
+                fetchGarage(); // Reload the list
+            }
+        }
+
+        async function removeVehicle(id) {
+            const session = await getSession();
+            if (!session) return;
+
+            const { error } = await window.supabase
+                .from('garage')
+                .delete()
+                .eq('id', id)
+                .eq('user_id', session.user.id);
+
+            if (error) {
+                alert("Error removing vehicle: " + error.message);
+            } else {
+                fetchGarage(); // Reload the list
+            }
+        }
+
         function updateSelectedVehicleDisplay() {
-            const selectedVehicleIndex = document.getElementById('vehicleSelect').value;
+            const selectedIndex = document.getElementById('vehicleSelect').value;
             const displayElement = document.getElementById('selectedVehicleDisplay');
             
-            if (selectedVehicleIndex === "") {
+            if (selectedIndex === "") {
                 displayElement.style.display = 'none';
             } else {
-                const vehicle = vehicles[selectedVehicleIndex];
-                displayElement.textContent = `Selected: ${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+                const vehicle = myVehicles[selectedIndex];
+                displayElement.textContent = `Selected: ${vehicle.car_year} ${vehicle.car_make} ${vehicle.car_model}`;
                 displayElement.style.display = 'block';
             }
         }
 
         function checkCompatibility() {
-            const selectedVehicleIndex = document.getElementById('vehicleSelect').value;
+            const selectedIndex = document.getElementById('vehicleSelect').value;
             const selectedPartId = document.getElementById('partSelect').value;
             const resultDiv = document.getElementById('compatibilityResult');
 
-            if (selectedVehicleIndex === "") {
+            if (selectedIndex === "") {
                 alert("Please select a vehicle first.");
                 return;
             }
@@ -387,12 +376,16 @@
                 return;
             }
 
-            const vehicle = vehicles[selectedVehicleIndex];
+            const vehicle = myVehicles[selectedIndex];
             const selectedProduct = allProducts.find(p => p.id == selectedPartId);
-            const vehicleDisplay = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+            const vehicleDisplay = `${vehicle.car_year} ${vehicle.car_make} ${vehicle.car_model}`;
             
-            // Check if product has Universal compatibility
-            const isCompatible = selectedProduct && selectedProduct.compatibility === "Universal";
+            // For now, assume Universal compatibility or matching makes.
+            // Ideally, your 'products' table would have a 'compatibility' array or string.
+            // Assuming we added a 'compatibility' column to products that says "Universal" or "Toyota".
+            const isUniversal = !selectedProduct.compatibility || selectedProduct.compatibility.toLowerCase() === 'universal';
+            const isSpecificMatch = selectedProduct.compatibility && selectedProduct.compatibility.toLowerCase() === vehicle.car_make.toLowerCase();
+            const isCompatible = isUniversal || isSpecificMatch;
 
             resultDiv.style.display = 'block';
             if (isCompatible) {
@@ -400,14 +393,15 @@
                 resultDiv.innerHTML = `✓ Compatible - ${selectedProduct.name} is compatible with your ${vehicleDisplay}`;
             } else {
                 resultDiv.className = 'compatibility-result result-incompatible';
-                resultDiv.innerHTML = `✗ Incompatible - ${selectedProduct.name} is not compatible with your ${vehicleDisplay}`;
+                resultDiv.innerHTML = `✗ Incompatible - ${selectedProduct.name} may not fit your ${vehicleDisplay}`;
             }
         }
 
-        // Initialize
-        initializeSampleVehicles();  // Initialize sample vehicles if empty
-        renderVehicles();
-        renderPartsDropdown();
+        // Initialize Data on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchGarage();
+            fetchProductsForDropdown();
+        });
 
         // Theme Toggle Logic
         function toggleTheme() {
