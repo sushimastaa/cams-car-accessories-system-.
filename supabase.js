@@ -4,7 +4,7 @@ const SUPABASE_URL = 'https://bsvuodlwfvlkpeumjpqu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzdnVvZGx3ZnZsa3BldW1qcHF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODUzMjAsImV4cCI6MjA5NzQ2MTMyMH0.KmL-0nw7oBX6bJJsB0yPjciwc25EG-z4klDdexQUETw';
 
 // Initialize the global supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Helper function to check session status
 async function getSession() {
