@@ -203,7 +203,6 @@
                     <select id="vehicleSelect" class="input-field-garage" onchange="updateSelectedVehicleDisplay()">
                         <option value="">-- Select Vehicle --</option>
                     </select>
-                    <p id="selectedVehicleDisplay" style="color: var(--accent-color); margin-top: 8px; font-weight: 600; display: none;"></p>
                 </div>
                 <div class="form-group" style="margin: 0;">
                     <label class="form-label">Select Part</label>
@@ -213,6 +212,8 @@
                 </div>
                 <button onclick="checkCompatibility()" class="btn btn-primary" style="width: auto; margin: 0;">Check Fitment</button>
             </div>
+            
+            <p id="selectedVehicleDisplay" style="color: var(--accent-color); margin-top: 8px; font-weight: 600; display: none;"></p>
 
             <div id="compatibilityResult" class="compatibility-result"></div>
         </div>
