@@ -21,6 +21,7 @@ async function handleLogout(e) {
         console.error('Logout Error:', error.message);
         alert('Error logging out.');
     } else {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
     }
 }
+
