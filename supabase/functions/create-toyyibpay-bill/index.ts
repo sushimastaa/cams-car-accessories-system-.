@@ -95,7 +95,8 @@ serve(async (req) => {
 
     const result = await response.json();
     if (!result || !result[0] || !result[0].BillCode) {
-      throw new Error("Failed to create ToyyibPay bill");
+      console.error("ToyyibPay Error Response:", result);
+      throw new Error("Failed to create ToyyibPay bill: " + JSON.stringify(result));
     }
 
     const billCode = result[0].BillCode;
@@ -118,6 +119,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
+    console.error("Checkout Edge Function Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

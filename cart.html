@@ -312,7 +312,22 @@
             
             if (error) {
                 console.error("Checkout Error:", error);
-                alert("Failed to initiate checkout.");
+                
+                // Extract error message if it's a FunctionsHttpError
+                let errorMessage = "Failed to initiate checkout.";
+                if (error instanceof Error) {
+                   errorMessage = `Checkout failed: ${error.message}`;
+                }
+                if (error.context && error.context.json) {
+                    try {
+                        const errData = await error.context.json();
+                        if (errData.error) {
+                            errorMessage = `Checkout Error: ${errData.error}`;
+                        }
+                    } catch (e) {}
+                }
+                
+                alert(errorMessage);
             } else if (data && data.checkoutUrl) {
                 // Redirect to ToyyibPay Payment Gateway
                 window.location.href = data.checkoutUrl;
