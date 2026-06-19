@@ -274,7 +274,7 @@
                 card.className = 'product-card';
                 card.innerHTML = `
                     <div class="product-image" onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">
-                        <img src="${p.image || 'images/placeholder.jpg'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                        <img src="${p.image || 'image/item-1.jpg'}" alt="${p.name}" onerror="this.onerror=null; this.src='image/item-1.jpg';" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="product-info">
                         <h3 onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">${p.name}</h3>
@@ -325,7 +325,7 @@
                 card.className = 'product-card';
                 card.innerHTML = `
                     <div class="product-image" onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">
-                        <img src="${p.image || 'images/placeholder.jpg'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                        <img src="${p.image || 'image/item-1.jpg'}" alt="${p.name}" onerror="this.onerror=null; this.src='image/item-1.jpg';" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="product-info">
                         <h3 onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">${p.name}</h3>
