@@ -276,7 +276,7 @@
             <a href="cart.html">Cart</a>
             <a href="garage.html">Garage</a>
             <a href="settings.html" class="avatar-icon" style="color: var(--text-main);" title="Settings">👤</a>
-            <a href="index.html">Logout</a>
+            <a href="index.html" onclick="handleLogout(); return false;">Logout</a>
         </div>
     </nav>
 
@@ -304,19 +304,19 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label">Username</label>
-                            <input type="text" class="input-field-profile" value="Admin User" placeholder="Enter your username">
+                            <input type="text" id="profile-name" class="input-field-profile" placeholder="Enter your username">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Email Address</label>
-                            <input type="email" class="input-field-profile" value="admin@cams.com" placeholder="Enter your email">
+                            <input type="email" id="profile-email" class="input-field-profile" placeholder="Enter your email" readonly style="opacity: 0.7;">
                         </div>
                         <div class="form-group full-width">
                             <label class="form-label">Home Address</label>
-                            <textarea class="input-field-profile" rows="3" placeholder="Enter your full home address">123 Automotive Lane, Garage City, GC 45678</textarea>
+                            <textarea id="profile-address" class="input-field-profile" rows="3" placeholder="Enter your full home address"></textarea>
                         </div>
                     </div>
                     <div style="text-align: right; margin-top: 20px;">
-                        <button type="button" class="btn btn-primary btn-save">Save Changes</button>
+                        <button type="button" class="btn btn-primary btn-save" onclick="saveProfile()">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -330,9 +330,9 @@
                 <div id="vehicles-container">
                     <!-- Vehicles will be loaded from garage.html -->
                 </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button type="button" class="btn btn-primary" onclick="loadVehicles()">Refresh Vehicles</button>
-                    <a href="garage.html" class="btn btn-primary" style="margin-left: 10px;">Go to Garage</a>
+                <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                    <button type="button" class="btn btn-primary btn-save" onclick="loadVehicles()">Refresh Vehicles</button>
+                    <a href="garage.html" class="btn btn-primary btn-save">Go to Garage</a>
                 </div>
             </div>
 
@@ -383,9 +383,9 @@
                         <!-- History records will be loaded from booking.html -->
                     </tbody>
                 </table>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button type="button" class="btn btn-primary" onclick="loadHistory()">Refresh History</button>
-                    <a href="booking.html" class="btn btn-primary" style="margin-left: 10px;">View Bookings</a>
+                <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                    <button type="button" class="btn btn-primary btn-save" onclick="loadHistory()">Refresh History</button>
+                    <a href="booking.html" class="btn btn-primary btn-save">View Bookings</a>
                 </div>
             </div>
 
@@ -397,7 +397,7 @@
                 </div>
                 <p style="color: var(--text-muted); margin-bottom: 20px;">Are you sure you want to sign out? You will need to log in again to access your account.</p>
                 <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn btn-danger" onclick="logout()">Sign Out</button>
+                    <button type="button" class="btn btn-danger" onclick="handleLogout()">Sign Out</button>
                     <button type="button" class="btn btn-primary" onclick="switchTab(event, 'account')">Cancel</button>
                 </div>
             </div>
@@ -411,7 +411,21 @@
         </svg>
     </button>
 
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+
     <script>
+        // Check Session
+        async function checkSession() {
+            const session = await getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            return session;
+        }
+
         // Theme Toggle Logic
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
@@ -453,99 +467,158 @@
             }
         }
 
-        // Load vehicles from garage.html (simulated)
-        function loadVehicles() {
+        // Profile Logic
+        async function loadProfile() {
+            const session = await checkSession();
+            if (!session) return;
+
+            document.getElementById('profile-email').value = session.user.email || '';
+
+            const { data: profile, error } = await window.supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+            if (profile) {
+                document.getElementById('profile-name').value = profile.full_name || '';
+                document.getElementById('profile-address').value = profile.address || '';
+            }
+        }
+
+        async function saveProfile() {
+            const session = await getSession();
+            if (!session) return;
+
+            const fullName = document.getElementById('profile-name').value;
+            const address = document.getElementById('profile-address').value;
+
+            const { error } = await window.supabase
+                .from('profiles')
+                .upsert({
+                    id: session.user.id,
+                    full_name: fullName,
+                    address: address
+                });
+
+            if (error) {
+                alert('Error saving profile: ' + error.message);
+            } else {
+                alert('Profile saved successfully!');
+            }
+        }
+
+        // Load vehicles from garage table
+        async function loadVehicles() {
+            const session = await checkSession();
+            if (!session) return;
+
             const container = document.getElementById('vehicles-container');
-            // This would typically fetch data from garage.html or an API
-            // For now, displaying sample vehicles
-            const vehiclesHTML = `
-                <div class="vehicle-card">
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">Vehicle Name</div>
-                        <div class="vehicle-info-value">Toyota Camry 2020</div>
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Loading vehicles...</p>';
+
+            const { data: vehicles, error } = await window.supabase
+                .from('garage')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('car_year', { ascending: false });
+
+            if (error) {
+                container.innerHTML = '<p style="color: #ef4444; text-align: center;">Error loading vehicles.</p>';
+                return;
+            }
+
+            if (!vehicles || vehicles.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No vehicles found. Go to Garage to add one.</p>';
+                return;
+            }
+
+            let vehiclesHTML = '';
+            vehicles.forEach(v => {
+                vehiclesHTML += `
+                    <div class="vehicle-card">
+                        <div class="vehicle-info">
+                            <div class="vehicle-info-label">Vehicle Name</div>
+                            <div class="vehicle-info-value">${v.car_make} ${v.car_model} ${v.car_year}</div>
+                        </div>
+                        <div class="vehicle-info">
+                            <div class="vehicle-info-label">License Plate</div>
+                            <div class="vehicle-info-value">${v.license_plate || 'N/A'}</div>
+                        </div>
+                        <div class="vehicle-info">
+                            <div class="vehicle-info-label">Color</div>
+                            <div class="vehicle-info-value">${v.color || 'N/A'}</div>
+                        </div>
+                        <div class="vehicle-info">
+                            <div class="vehicle-info-label">Status</div>
+                            <div class="vehicle-info-value">Active</div>
+                        </div>
                     </div>
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">License Plate</div>
-                        <div class="vehicle-info-value">ABC-1234</div>
-                    </div>
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">Color</div>
-                        <div class="vehicle-info-value">Silver</div>
-                    </div>
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">Status</div>
-                        <div class="vehicle-info-value">Active</div>
-                    </div>
-                </div>
-                <div class="vehicle-card">
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">Vehicle Name</div>
-                        <div class="vehicle-info-value">Honda CR-V 2019</div>
-                    </div>
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">License Plate</div>
-                        <div class="vehicle-info-value">XYZ-5678</div>
-                    </div>
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">Color</div>
-                        <div class="vehicle-info-value">Black</div>
-                    </div>
-                    <div class="vehicle-info">
-                        <div class="vehicle-info-label">Status</div>
-                        <div class="vehicle-info-value">Active</div>
-                    </div>
-                </div>
-            `;
+                `;
+            });
             container.innerHTML = vehiclesHTML;
         }
 
-        // Load transaction history from booking.html (simulated)
-        function loadHistory() {
+        // Load transaction history from orders table
+        async function loadHistory() {
+            const session = await checkSession();
+            if (!session) return;
+
             const tbody = document.getElementById('history-body');
-            // This would typically fetch data from booking.html or an API
-            // For now, displaying sample history
-            const historyHTML = `
-                <tr>
-                    <td>#TXN001</td>
-                    <td>2024-06-15</td>
-                    <td>Oil Filter, Air Filter</td>
-                    <td>$49.99</td>
-                    <td><span class="status-badge status-completed">Completed</span></td>
-                </tr>
-                <tr>
-                    <td>#TXN002</td>
-                    <td>2024-06-10</td>
-                    <td>Brake Pads</td>
-                    <td>$89.99</td>
-                    <td><span class="status-badge status-completed">Completed</span></td>
-                </tr>
-                <tr>
-                    <td>#TXN003</td>
-                    <td>2024-06-05</td>
-                    <td>Battery Replacement</td>
-                    <td>$159.99</td>
-                    <td><span class="status-badge status-pending">Pending</span></td>
-                </tr>
-                <tr>
-                    <td>#TXN004</td>
-                    <td>2024-05-28</td>
-                    <td>Spark Plugs</td>
-                    <td>$34.99</td>
-                    <td><span class="status-badge status-completed">Completed</span></td>
-                </tr>
-            `;
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Loading history...</td></tr>';
+
+            const { data: orders, error } = await window.supabase
+                .from('orders')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: #ef4444;">Error loading history.</td></tr>';
+                return;
+            }
+
+            if (!orders || orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No transaction history found.</td></tr>';
+                return;
+            }
+
+            let historyHTML = '';
+            orders.forEach(o => {
+                const date = new Date(o.created_at).toISOString().split('T')[0];
+                let statusClass = 'status-pending';
+                if (o.status === 'completed') statusClass = 'status-completed';
+                if (o.status === 'cancelled') statusClass = 'status-cancelled';
+                
+                // Truncate UUID for display
+                const shortId = o.id.toString().substring(0, 8).toUpperCase();
+
+                // Format items array or JSON
+                let itemsDisplay = 'Items';
+                if (o.items && Array.isArray(o.items)) {
+                    // Try to map product names or just say X items
+                    itemsDisplay = o.items.map(item => item.product_name || item.name || 'Item').join(', ');
+                } else if (typeof o.items === 'string') {
+                    itemsDisplay = o.items;
+                }
+
+                historyHTML += `
+                    <tr>
+                        <td>#${shortId}</td>
+                        <td>${date}</td>
+                        <td>${itemsDisplay}</td>
+                        <td>$${parseFloat(o.amount).toFixed(2)}</td>
+                        <td><span class="status-badge ${statusClass}">${o.status.charAt(0).toUpperCase() + o.status.slice(1)}</span></td>
+                    </tr>
+                `;
+            });
             tbody.innerHTML = historyHTML;
         }
 
-        // Logout Function
-        function logout() {
-            localStorage.removeItem('userSession');
-            window.location.href = 'index.html';
-        }
-
-        // Initialize history on page load
+        // Initialize on page load
         window.addEventListener('DOMContentLoaded', function() {
-            loadHistory();
+            loadProfile();
+            // loadHistory() and loadVehicles() are called when their tabs are clicked.
+            // But we can preemptively load history or vehicles if needed.
         });
     </script>
 </body>

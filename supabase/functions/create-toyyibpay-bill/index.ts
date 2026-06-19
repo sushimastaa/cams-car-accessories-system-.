@@ -27,8 +27,9 @@ serve(async (req) => {
     );
 
     // Get User
-    const { data: { user }, error: userError } = await supabaseUserClient.auth.getUser();
-    if (userError || !user) throw new Error("Unauthorized");
+    const jwt = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseUserClient.auth.getUser(jwt);
+    if (userError || !user) throw new Error("Unauthorized: " + (userError?.message || "User not found"));
 
     // Fetch Cart
     const { data: cartItems, error: cartError } = await supabaseUserClient
@@ -67,8 +68,9 @@ serve(async (req) => {
     if (orderError) throw orderError;
 
     // Call ToyyibPay
-    const toyyibpaySecretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY');
-    const toyyibpayCategory = Deno.env.get('TOYYIBPAY_CATEGORY_CODE');
+    const toyyibpaySecretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY') || 'd0jxu87e-kq6w-4lpc-lwx1-csbl6xsutv4x';
+    const toyyibpayCategory = Deno.env.get('TOYYIBPAY_CATEGORY_CODE') || '4bddgvw4';
+    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://cams-car-accessories-system.vercel.app';
 
     const formData = new FormData();
     formData.append('userSecretKey', toyyibpaySecretKey!);
@@ -78,7 +80,7 @@ serve(async (req) => {
     formData.append('billPriceSetting', '1');
     formData.append('billPayorInfo', '1');
     formData.append('billAmount', amountInCents.toString());
-    formData.append('billReturnUrl', `${Deno.env.get('FRONTEND_URL')}/payment_status.html?order_id=${order.id}`);
+    formData.append('billReturnUrl', `${frontendUrl}/payment_status.html?order_id=${order.id}`);
     formData.append('billCallbackUrl', `${Deno.env.get('SUPABASE_URL')}/functions/v1/toyyibpay-webhook`);
     formData.append('billExternalReferenceNo', order.id);
     formData.append('billTo', user.user_metadata?.username || 'Customer');
@@ -120,6 +122,15 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error("Checkout Edge Function Error:", error);
+    
+    try {
+      const errClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      await errClient.from('debug_logs').insert([{ log_text: error.message || JSON.stringify(error) }]);
+    } catch (e) {}
+
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
