@@ -236,7 +236,7 @@
                 .from('products')
                 .select('*')
                 .order('rating', { ascending: false })
-                .limit(10); // Fetch top 10
+                .limit(50); // Fetch top 50 to have enough for category filtering
 
             if (error) {
                 console.error('Error fetching products:', error);
@@ -257,12 +257,15 @@
             if (filterCategory !== 'all') {
                 productsToDisplay = productsToDisplay.filter(p => {
                     const cat = (p.category || '').toLowerCase();
-                    if (filterCategory === 'performance') return cat.includes('brake') || cat.includes('suspension');
-                    if (filterCategory === 'exterior') return cat.includes('headlamp') || cat.includes('wiper') || cat.includes('camera') || cat.includes('plate');
-                    if (filterCategory === 'interior') return cat.includes('player') || cat.includes('speaker') || cat.includes('mat') || cat.includes('interior');
+                    if (filterCategory === 'performance') return cat.includes('brake') || cat.includes('suspension') || cat.includes('performance') || cat.includes('engine') || cat.includes('exhaust');
+                    if (filterCategory === 'exterior') return cat.includes('headlamp') || cat.includes('wiper') || cat.includes('camera') || cat.includes('plate') || cat.includes('exterior') || cat.includes('light');
+                    if (filterCategory === 'interior') return cat.includes('player') || cat.includes('speaker') || cat.includes('mat') || cat.includes('interior') || cat.includes('seat') || cat.includes('dash');
                     return false;
                 });
             }
+
+            // Only display up to 10 products per category
+            productsToDisplay = productsToDisplay.slice(0, 10);
 
             if (productsToDisplay.length === 0) {
                 scrollContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No products found in this category.</p>';
