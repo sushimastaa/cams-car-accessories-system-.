@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Garage - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Override global body styles for scrolling layout */
+        body {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 40px;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-weight: 600; font-size: 1.2rem; color: var(--text-main); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-main); }
+        
+        /* Avatar Icon */
+        .avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .avatar-icon:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { margin: 0; font-size: 2rem; color: var(--text-main); }
+        .page-header p { color: var(--text-muted); margin-top: 8px; }
+
+        .garage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .card h2 { margin-top: 0; color: var(--text-main); font-size: 1.25rem; margin-bottom: 20px; }
+
+        /* Form Styles */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem; }
+        .input-field-garage {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .input-field-garage:focus { border-color: var(--accent-color); }
+
+        /* Vehicle List */
+        .vehicle-list { display: flex; flex-direction: column; gap: 16px; }
+        .vehicle-card {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .vehicle-info h3 { margin: 0 0 4px; color: var(--text-main); font-size: 1.1rem; }
+        .vehicle-info p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+        .btn-remove { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.9rem; }
+        .btn-remove:hover { text-decoration: underline; }
+
+        /* Compatibility Section */
+        .compatibility-result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 600;
+        }
+        .result-compatible { 
+            background-color: rgba(34, 197, 94, 0.15); 
+            color: #22c55e; 
+            border: 2px solid #22c55e;
+        }
+        .result-incompatible { 
+            background-color: rgba(239, 68, 68, 0.15); 
+            color: #ef4444; 
+            border: 2px solid #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .garage-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">CAMS</div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="garage.html" style="color: var(--text-main);">Garage</a>
+            <a href="cart.html">Cart</a>
+            <a href="settings.html" class="avatar-icon" title="Settings">👤</a>
+            <a href="login.html">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>My Garage</h1>
+            <p>Add your vehicles to check part compatibility automatically.</p>
+        </div>
+
+        <div class="garage-grid">
+            <!-- Add Vehicle Form -->
+            <div class="card">
+                <h2>Add a Vehicle</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Search our database for vehicles verified by our team.</p>
+                <div class="form-group">
+                    <input type="text" id="vehicleSearch" class="input-field-garage" placeholder="Start typing Make or Model..." oninput="searchAvailableVehicles()">
+                </div>
+                <div id="searchResults" class="vehicle-list" style="max-height: 250px; overflow-y: auto; display: none; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-top: 10px; background: var(--input-bg);">
+                    <!-- Search results will appear here -->
+                </div>
+            </div>
+
+            <!-- Vehicle List -->
+            <div class="card">
+                <h2>My Vehicles</h2>
+                <div id="vehicleList" class="vehicle-list">
+                    <!-- Vehicles will be injected here -->
+                    <p style="color: var(--text-muted);">No vehicles added yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compatibility Checker -->
+        <div class="card">
+            <h2>Check Part Compatibility</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Select a vehicle from your garage and a part to see if it fits.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end;">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label">Select Vehicle</label>
+                    <select id="vehicleSelect" class="input-field-garage" onchange="updateSelectedVehicleDisplay()">
+                        <option value="">-- Select Vehicle --</option>
+                    </select>
+                    <p id="selectedVehicleDisplay" style="color: var(--accent-color); margin-top: 8px; font-weight: 600; display: none;"></p>
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label">Select Part</label>
+                    <select id="partSelect" class="input-field-garage" required>
+                        <option value="">-- Select Part --</option>
+                    </select>
+                </div>
+                <button onclick="checkCompatibility()" class="btn btn-primary" style="width: auto; margin: 0;">Check Fitment</button>
+            </div>
+
+            <div id="compatibilityResult" class="compatibility-result"></div>
+        </div>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+    </button>
+
+    <script>
+        // Initialize Sample Vehicles if Admin Database is Empty
+        function initializeSampleVehicles() {
+            const existingVehicles = JSON.parse(localStorage.getItem('availableVehicles')) || [];
+            if (existingVehicles.length === 0) {
+                const sampleVehicles = [
+                    { id: 1001, year: 2024, make: "Toyota", model: "Vios" },
+                    { id: 1002, year: 2023, make: "Toyota", model: "Avanza" },
+                    { id: 1003, year: 2022, make: "Honda", model: "City" },
+                    { id: 1004, year: 2023, make: "Honda", model: "Civic" },
+                    { id: 1005, year: 2024, make: "Nissan", model: "Almera" },
+                    { id: 1006, year: 2022, make: "Proton", model: "X50" },
+                    { id: 1007, year: 2023, make: "Perodua", model: "Myvi" },
+                    { id: 1008, year: 2024, make: "Hyundai", model: "i10" }
+                ];
+                localStorage.setItem('availableVehicles', JSON.stringify(sampleVehicles));
+            }
+        }
+
+        // Mock Data (from shop.html)
+        const baseProducts = [
+            { id: 1, name: "10\" Android Player", category: "Android Player", price: 150.00, rating: 4.5, image: "images/android_player.jpg", compatibility: "Universal" },
+            { id: 2, name: "Bass Pro Speakers", category: "Speaker", price: 85.00, rating: 4.2, image: "images/bass_pro_speakers.jpg", compatibility: "Universal" },
+            { id: 3, name: "All-Weather Floor Mats", category: "Floor Mats", price: 45.00, rating: 4.8, image: "images/floor_mats.jpg", compatibility: "Universal" },
+            { id: 4, name: "LED Headlight Bulbs", category: "Headlamps", price: 120.00, rating: 4.6, image: "images/led_headlamps.jpg", compatibility: "Universal" },
+            { id: 5, name: "Silicone Wiper Blades", category: "Wiper", price: 25.00, rating: 4.0, image: "images/wiper_blades.jpg", compatibility: "Universal" },
+            { id: 6, name: "HD Reverse Camera", category: "Camera", price: 60.00, rating: 4.3, image: "images/reverse_camera.jpg", compatibility: "Universal" },
+            { id: 7, name: "Custom Plate Fonts", category: "Plate Number Fonts", price: 15.00, rating: 5.0, image: "images/plate_fonts.jpg", compatibility: "Universal" },
+            { id: 8, name: "Sony Component Speakers", category: "Speaker", price: 110.00, rating: 4.7, image: "images/sony_speakers.jpg", compatibility: "Universal" },
+            { id: 9, name: "Premium Carpet Mats", category: "Floor Mats", price: 35.00, rating: 4.1, image: "images/carpet_mats.jpg", compatibility: "Universal" },
+            { id: 10, name: "Halogen Headlamps", category: "Headlamps", price: 40.00, rating: 3.8, image: "images/halogen_headlamps.jpg", compatibility: "Universal" },
+        ];
+        const localInventory = JSON.parse(localStorage.getItem('inventory')) || [];
+        const allProducts = [...localInventory, ...baseProducts];
+
+        // --- Garage Logic ---
+        let vehicles = [];
+
+        async function renderVehicles() {
+            // Load user's own collection from Local Storage
+            const localVehicles = JSON.parse(localStorage.getItem('userGarageVehicles')) || [];
+            const response = await fetch('api_garage.php').catch(() => null);
+            let apiVehicles = [];
+            if (response && response.ok) apiVehicles = await response.json();
+            
+            vehicles = [...localVehicles, ...apiVehicles];
+            
+            const list = document.getElementById('vehicleList');
+            const select = document.getElementById('vehicleSelect');
+            
+            list.innerHTML = '';
+            select.innerHTML = '<option value="">-- Select Vehicle --</option>';
+
+            if (vehicles.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted);">No vehicles added yet.</p>';
+                return;
+            }
+
+            vehicles.forEach((v, index) => {
+                // Add to list
+                list.innerHTML += `
+                    <div class="vehicle-card">
+                        <div class="vehicle-info">
+                            <h3>${v.year} ${v.make} ${v.model}</h3>
+                            <p>Added to Garage</p>
+                        </div>
+                        <button class="btn-remove" onclick="removeVehicle(${v.id})">Remove</button>
+                    </div>
+                `;
+                // Add to dropdown
+                select.innerHTML += `<option value="${index}">${v.year} ${v.make} ${v.model}</option>`;
+            });
+        }
+
+        function searchAvailableVehicles() {
+            const query = document.getElementById('vehicleSearch').value.toLowerCase();
+            const resultsDiv = document.getElementById('searchResults');
+            const adminDatabase = JSON.parse(localStorage.getItem('availableVehicles')) || [];
+
+            if (query.trim() === '') {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            const filtered = adminDatabase.filter(v => 
+                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(query)
+            );
+
+            resultsDiv.innerHTML = '';
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No matching vehicles found.</p>';
+            } else {
+                filtered.forEach(v => {
+                    const div = document.createElement('div');
+                    div.className = 'vehicle-card';
+                    div.style.cursor = 'pointer';
+                    div.style.marginBottom = '8px';
+                    div.style.background = 'var(--card-bg)';
+                    div.innerHTML = `
+                        <div class="vehicle-info">
+                            <h3>${v.year} ${v.make} ${v.model}</h3>
+                        </div>
+                        <button class="btn btn-primary" style="width: auto; padding: 4px 12px; font-size: 0.8rem;">Add</button>
+                    `;
+                    div.onclick = () => addVehicleToGarage(v);
+                    resultsDiv.appendChild(div);
+                });
+            }
+            resultsDiv.style.display = 'block';
+        }
+
+        function addVehicleToGarage(vehicle) {
+            let myVehicles = JSON.parse(localStorage.getItem('userGarageVehicles')) || [];
+            if (myVehicles.some(v => v.id === vehicle.id)) {
+                alert('This vehicle is already in your garage.');
+                return;
+            }
+            myVehicles.push(vehicle);
+            localStorage.setItem('userGarageVehicles', JSON.stringify(myVehicles));
+            document.getElementById('vehicleSearch').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+            renderVehicles();
+        }
+
+        async function removeVehicle(id) {
+            // Remove from local storage
+            let myVehicles = JSON.parse(localStorage.getItem('userGarageVehicles')) || [];
+            myVehicles = myVehicles.filter(v => v.id !== id);
+            localStorage.setItem('userGarageVehicles', JSON.stringify(myVehicles));
+
+            // Try API if it exists
+            await fetch(`api_garage.php?id=${id}`, { method: 'DELETE' }).catch(() => null);
+            renderVehicles();
+        }
+
+        function renderPartsDropdown() {
+            const partSelect = document.getElementById('partSelect');
+            partSelect.innerHTML = '<option value="">-- Select Part --</option>'; // Clear existing options
+
+            allProducts.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.name;
+                partSelect.appendChild(option);
+            });
+        }
+        // --- Compatibility Logic ---
+        function updateSelectedVehicleDisplay() {
+            const selectedVehicleIndex = document.getElementById('vehicleSelect').value;
+            const displayElement = document.getElementById('selectedVehicleDisplay');
+            
+            if (selectedVehicleIndex === "") {
+                displayElement.style.display = 'none';
+            } else {
+                const vehicle = vehicles[selectedVehicleIndex];
+                displayElement.textContent = `Selected: ${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+                displayElement.style.display = 'block';
+            }
+        }
+
+        function checkCompatibility() {
+            const selectedVehicleIndex = document.getElementById('vehicleSelect').value;
+            const selectedPartId = document.getElementById('partSelect').value;
+            const resultDiv = document.getElementById('compatibilityResult');
+
+            if (selectedVehicleIndex === "") {
+                alert("Please select a vehicle first.");
+                return;
+            }
+            if (selectedPartId === "") {
+                alert("Please select a part first.");
+                return;
+            }
+
+            const vehicle = vehicles[selectedVehicleIndex];
+            const selectedProduct = allProducts.find(p => p.id == selectedPartId);
+            const vehicleDisplay = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+            
+            // Check if product has Universal compatibility
+            const isCompatible = selectedProduct && selectedProduct.compatibility === "Universal";
+
+            resultDiv.style.display = 'block';
+            if (isCompatible) {
+                resultDiv.className = 'compatibility-result result-compatible';
+                resultDiv.innerHTML = `✓ Compatible - ${selectedProduct.name} is compatible with your ${vehicleDisplay}`;
+            } else {
+                resultDiv.className = 'compatibility-result result-incompatible';
+                resultDiv.innerHTML = `✗ Incompatible - ${selectedProduct.name} is not compatible with your ${vehicleDisplay}`;
+            }
+        }
+
+        // Initialize
+        initializeSampleVehicles();  // Initialize sample vehicles if empty
+        renderVehicles();
+        renderPartsDropdown();
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>

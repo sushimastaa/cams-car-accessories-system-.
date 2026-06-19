@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Layout overrides */
+        body {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 40px;
+        }
+
+        /* Navbar (Consistent with other pages) */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-weight: 600; font-size: 1.2rem; color: var(--text-main); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+
+        /* Search Bar (Consistent with other pages) */
+        .search-container { flex: 1; max-width: 400px; margin: 0 20px; }
+        .search-input { width: 100%; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-main); outline: none; font-family: inherit; }
+        .search-input:focus { border-color: var(--accent-color); }
+        .nav-links a:hover { color: var(--text-main); }
+        
+        /* Avatar Icon */
+        .avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .avatar-icon:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+
+        /* Payment Layout */
+        .payment-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .payment-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .payment-header { margin-bottom: 24px; text-align: center; }
+        .payment-header h1 { margin: 0 0 8px; color: var(--text-main); font-size: 1.8rem; }
+        .payment-header p { margin: 0; color: var(--text-muted); }
+
+        .payment-summary {
+            background-color: var(--input-bg);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+        .payment-summary div { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .payment-summary div:last-child { margin-bottom: 0; font-weight: 600; }
+
+        .payment-options { margin-bottom: 24px; }
+        .payment-options h2 { font-size: 1.2rem; color: var(--text-main); margin-bottom: 16px; }
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .payment-method:hover { border-color: var(--accent-color); }
+        .payment-method.selected {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .payment-method input[type="radio"] { display: none; }
+        .payment-method label { flex-grow: 1; cursor: pointer; font-weight: 500; color: var(--text-main); }
+        .payment-method img { height: 24px; }
+
+        .card-details {
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 15px;
+        }
+        .card-details.active { display: flex; }
+
+        .fpx-details {
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 15px;
+        }
+        .fpx-details.active { display: flex; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+        .input-field { padding: 12px 16px; width: 100%; box-sizing: border-box; }
+
+        .card-expiry-cvv { display: flex; gap: 15px; }
+        .card-expiry-cvv > div { flex: 1; }
+
+        .payment-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        .payment-result.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .payment-result.failure { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">CAMS</div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search products...">
+        </div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="cart.html">Cart</a>
+            <a href="garage.html">Garage</a>
+            <a href="settings.html" class="avatar-icon" title="Settings">👤</a>
+            <a href="login.html">Logout</a>
+        </div>
+    </nav>
+
+    <div class="payment-container">
+        <div class="payment-card">
+            <div class="payment-header">
+                <h1>Complete Your Payment</h1>
+                <p>Choose your preferred payment method</p>
+            </div>
+
+            <div class="payment-summary">
+                <div><span>Service:</span> <span id="summaryService"></span></div>
+                <div><span>Date:</span> <span id="summaryDate"></span></div>
+                <div><span>Time:</span> <span id="summaryTime"></span></div>
+                <div><span>Total Amount:</span> <span id="summaryAmount">RM 150.00</span></div>
+            </div>
+
+            <form id="paymentForm">
+                <div class="payment-options">
+                    <h2>Payment Method</h2>
+                    <div class="option-group">
+                        <div class="payment-method" data-method="card">
+                            <input type="radio" name="paymentMethod" id="creditCard" value="card" checked>
+                            <label for="creditCard">Credit / Debit Card</label>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/MasterCard_Logo.svg/1200px-MasterCard_Logo.svg.png" alt="MasterCard" style="height: 20px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Visa_Logo.png/640px-Visa_Logo.png" alt="Visa" style="height: 20px;">
+                        </div>
+                        <div class="payment-method" data-method="fpx">
+                            <input type="radio" name="paymentMethod" id="fpx" value="fpx">
+                            <label for="fpx">FPX Online Banking</label>
+                            <img src="https://www.paynet.my/fpx/FPX_Logo.png" alt="FPX" style="height: 24px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cardDetails" class="card-details active">
+                    <div class="form-group">
+                        <label class="form-label" for="cardNumber">Card Number</label>
+                        <input type="text" id="cardNumber" class="input-field" placeholder="XXXX XXXX XXXX XXXX" required pattern="[0-9]{13,16}">
+                    </div>
+                    <div class="form-group card-expiry-cvv">
+                        <div>
+                            <label class="form-label" for="cardExpiry">Expiry Date</label>
+                            <input type="text" id="cardExpiry" class="input-field" placeholder="MM/YY" required pattern="(0[1-9]|1[0-2])\/([0-9]{2})">
+                        </div>
+                        <div>
+                            <label class="form-label" for="cardCvv">CVV</label>
+                            <input type="text" id="cardCvv" class="input-field" placeholder="XXX" required pattern="[0-9]{3,4}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="cardName">Cardholder Name</label>
+                        <input type="text" id="cardName" class="input-field" placeholder="Name on Card" required>
+                    </div>
+                </div>
+
+                <div id="fpxDetails" class="fpx-details">
+                    <div class="form-group">
+                        <label class="form-label" for="fpxBank">Select Bank</label>
+                        <select id="fpxBank" class="input-field" required>
+                            <option value="">-- Select Your Bank --</option>
+                            <option value="maybank">Maybank2u</option>
+                            <option value="cimb">CIMB Clicks</option>
+                            <option value="public">Public Bank</option>
+                            <option value="rhb">RHB Bank</option>
+                            <option value="hlb">Hong Leong Bank</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Pay Now</button>
+            </form>
+
+            <div id="paymentResult" class="payment-result">
+                <!-- Payment result message will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+    </button>
+
+    <script>
+        // Theme Toggle Logic (Consistent with other pages)
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Get booking details from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const service = urlParams.get('service') || 'General Installation';
+        const date = urlParams.get('date') || 'N/A';
+        const time = urlParams.get('time') || 'N/A';
+        const amount = 150.00; // Standard base fee as defined in booking.html logic
+
+        // Display booking summary
+        document.getElementById('summaryService').textContent = service;
+        document.getElementById('summaryDate').textContent = date;
+        document.getElementById('summaryTime').textContent = time;
+        document.getElementById('summaryAmount').textContent = `RM ${amount.toFixed(2)}`;
+        
+        // Payment method selection logic
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        const cardDetails = document.getElementById('cardDetails');
+        const fpxDetails = document.getElementById('fpxDetails');
+        const creditCardRadio = document.getElementById('creditCard');
+        const fpxRadio = document.getElementById('fpx');
+
+        function updatePaymentDetailsVisibility() {
+            if (creditCardRadio.checked) {
+                cardDetails.classList.add('active');
+                fpxDetails.classList.remove('active');
+                // Set required attributes for card details
+                cardDetails.querySelectorAll('input').forEach(input => input.setAttribute('required', ''));
+                fpxDetails.querySelectorAll('select').forEach(select => select.removeAttribute('required'));
+            } else if (fpxRadio.checked) {
+                fpxDetails.classList.add('active');
+                cardDetails.classList.remove('active');
+                // Set required attributes for FPX details
+                fpxDetails.querySelectorAll('select').forEach(select => select.setAttribute('required', ''));
+                cardDetails.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+            }
+        }
+
+        paymentMethods.forEach(method => {
+            method.addEventListener('click', () => {
+                paymentMethods.forEach(m => m.classList.remove('selected'));
+                method.classList.add('selected');
+                method.querySelector('input[type="radio"]').checked = true;
+                updatePaymentDetailsVisibility();
+            });
+        });
+
+        // Initial setup
+        updatePaymentDetailsVisibility();
+
+        // Simulate payment processing
+        document.getElementById('paymentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const paymentResultDiv = document.getElementById('paymentResult');
+            paymentResultDiv.style.display = 'none'; // Hide previous result
+
+            // Simulate API call delay
+            setTimeout(() => {
+                const isSuccess = Math.random() > 0.1; // 90% chance of success for better testing
+
+                if (isSuccess) {
+                    // Save record to the "localServer" (localStorage)
+                    const allBookings = JSON.parse(localStorage.getItem('allBookings')) || [];
+                    
+                    const confirmedBooking = {
+                        id: Math.floor(Math.random() * 10000),
+                        customer_name: "Uthman", // Mock user session name
+                        order_date: new Date().toISOString().split('T')[0],
+                        booking_date: date,
+                        booking_time: time,
+                        amount: amount,
+                        status: 'completed', // Maps to the success badge in admin_dashboard
+                        service: service
+                    };
+
+                    allBookings.unshift(confirmedBooking);
+                    localStorage.setItem('allBookings', JSON.stringify(allBookings));
+
+                    paymentResultDiv.className = 'payment-result success';
+                    paymentResultDiv.innerHTML = `<p>Payment Successful!</p><p>Your booking for ${service} has been confirmed. You will be redirected shortly.</p>`;
+                    paymentResultDiv.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'home.html';
+                    }, 3000);
+                } else {
+                    paymentResultDiv.className = 'payment-result failure';
+                    paymentResultDiv.textContent = 'Payment Failed. Please try again.';
+                    paymentResultDiv.style.display = 'block';
+                }
+            }, 1500); // 1.5 seconds delay
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Status - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            margin: 0;
+            font-family: inherit;
+        }
+
+        .status-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .icon.success { color: #10b981; }
+        .icon.failed { color: #ef4444; }
+        .icon.loading { color: var(--accent-color); animation: spin 1s linear infinite; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .status-title {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .status-message {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .details-box {
+            background-color: var(--input-bg);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .details-row:last-child { margin-bottom: 0; }
+        .details-label { color: var(--text-muted); font-size: 0.9rem; }
+        .details-value { color: var(--text-main); font-weight: 500; font-size: 0.9rem; }
+
+        .btn-return {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="status-container" id="statusContainer">
+        <!-- Initial Loading State -->
+        <div class="icon loading">↻</div>
+        <h1 class="status-title">Verifying Payment...</h1>
+        <p class="status-message">Please wait while we confirm your transaction with ToyyibPay.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('statusContainer');
+            
+            // 1. URL Parameter Parsing
+            const urlParams = new URLSearchParams(window.location.search);
+            const status_id = urlParams.get('status_id');
+            const billcode = urlParams.get('billcode');
+            const order_id = urlParams.get('order_id');
+
+            // Provide a graceful fallback if someone lands here without parameters
+            if (!order_id) {
+                renderError(container, "Invalid Request", "No order ID found in the URL.");
+                return;
+            }
+
+            // Check Authentication
+            const session = await getSession();
+            if (!session) {
+                renderError(container, "Unauthorized", "Please log in to view your payment status.");
+                return;
+            }
+
+            // 2. Database Verification (Fallback)
+            // Double check that the webhook successfully updated our order to "completed"
+            const { data: order, error } = await supabase
+                .from('orders')
+                .select('status, amount')
+                .eq('id', order_id)
+                .maybeSingle();
+
+            if (error || !order) {
+                renderError(container, "Order Not Found", "We couldn't locate this order in our system.");
+                return;
+            }
+
+            // 3. Status UI Rendering
+            if (status_id === '1' || order.status === 'completed') {
+                // Success Flow
+                container.innerHTML = `
+                    <div class="icon success">✓</div>
+                    <h1 class="status-title">Payment Successful!</h1>
+                    <p class="status-message">Thank you for your purchase. Your order has been placed successfully.</p>
+                    
+                    <div class="details-box">
+                        <div class="details-row">
+                            <span class="details-label">Order ID:</span>
+                            <span class="details-value">#${order_id.split('-')[0]}</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label">Bill Code:</span>
+                            <span class="details-value">${billcode || order.toyyibpay_bill_code || 'N/A'}</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label">Amount Paid:</span>
+                            <span class="details-value">RM${parseFloat(order.amount).toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-return" onclick="window.location.href='shop.html'">Return to Shop</button>
+                    <button class="btn btn-outline btn-return" style="margin-top: 10px;" onclick="window.location.href='garage.html'">View My Orders</button>
+                `;
+            } else {
+                // Failed / Pending Flow
+                const isPending = (status_id === '2' && order.status === 'pending');
+                
+                container.innerHTML = `
+                    <div class="icon failed">✗</div>
+                    <h1 class="status-title">${isPending ? 'Payment Pending' : 'Payment Failed'}</h1>
+                    <p class="status-message">${isPending ? 'Your payment is still being processed. Check your orders later.' : 'Unfortunately, your transaction could not be completed. No charges were made.'}</p>
+                    
+                    <div class="details-box">
+                        <div class="details-row">
+                            <span class="details-label">Order ID:</span>
+                            <span class="details-value">#${order_id.split('-')[0]}</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-return" onclick="window.location.href='cart.html'">Try Again</button>
+                    <button class="btn btn-outline btn-return" style="margin-top: 10px;" onclick="window.location.href='shop.html'">Return to Shop</button>
+                `;
+            }
+        });
+
+        // Helper to render errors
+        function renderError(container, title, message) {
+            container.innerHTML = `
+                <div class="icon failed">!</div>
+                <h1 class="status-title">${title}</h1>
+                <p class="status-message">${message}</p>
+                <button class="btn btn-primary btn-return" onclick="window.location.href='shop.html'">Return to Shop</button>
+            `;
+        }
+    </script>
+</body>
+</html>

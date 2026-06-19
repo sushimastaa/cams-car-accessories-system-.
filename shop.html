@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Layout overrides */
+        body {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 40px;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-weight: 600; font-size: 1.2rem; color: var(--text-main); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-main); }
+        
+        /* Avatar Icon */
+        .avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .avatar-icon:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+        
+        /* Search Bar */
+        .search-container { flex: 1; max-width: 400px; margin: 0 20px; }
+        .search-input {
+            width: 100%;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+            font-family: inherit;
+        }
+        .search-input:focus { border-color: var(--accent-color); }
+
+        /* Shop Layout */
+        .shop-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            gap: 30px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+        }
+        .filter-group {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .filter-group:last-child { border-bottom: none; }
+        .filter-group h3 {
+            font-size: 1rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .filter-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .filter-option:hover { color: var(--text-main); }
+        .filter-option input { margin-right: 10px; accent-color: var(--accent-color); }
+
+        /* Product Grid */
+        .product-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        /* Product Card */
+        .product-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card:hover { transform: translateY(-4px); border-color: var(--accent-color); }
+        .product-image {
+            height: 180px;
+            background-color: var(--input-bg);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+        .product-info h3 { font-size: 1rem; margin: 0 0 4px; color: var(--text-main); }
+        .product-info p { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 8px; }
+        .rating { color: #fbbf24; font-size: 0.85rem; margin-bottom: 16px; display: flex; align-items: center; gap: 4px; }
+        .product-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+        .price { font-weight: 600; color: var(--text-main); }
+        .btn-add {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer; /* Changed padding and font-size for better visibility and clickability */
+            font-size: 0.85rem;
+            transition: background-color 0.2s;
+        }
+        .btn-add:hover { background-color: #ea580c; }
+
+        @media (max-width: 768px) {
+            .shop-container { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">CAMS</div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search products...">
+        </div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="shop.html" style="color: var(--text-main);">Shop</a>
+            <a href="cart.html">Cart</a>
+            <a href="garage.html">Garage</a>
+            <a href="settings.html" class="avatar-icon" title="Settings">👤</a>
+            <a href="login.html">Logout</a>
+        </div>
+    </nav>
+
+    <div class="shop-container">
+        <aside class="sidebar">
+            <div class="filter-group">
+                <h3>Categories</h3>
+                <label class="filter-option"><input type="checkbox" name="category" value="Android Player"> Android Player</label>
+                <label class="filter-option"><input type="checkbox" name="category" value="Speaker"> Speaker</label>
+                <label class="filter-option"><input type="checkbox" name="category" value="Floor Mats"> Floor Mats</label>
+                <label class="filter-option"><input type="checkbox" name="category" value="Headlamps"> Headlamps</label>
+                <label class="filter-option"><input type="checkbox" name="category" value="Wiper"> Wiper</label>
+                <label class="filter-option"><input type="checkbox" name="category" value="Camera"> Camera</label>
+                <label class="filter-option"><input type="checkbox" name="category" value="Plate Number Fonts"> Plate Number Fonts</label>
+            </div>
+            <div class="filter-group">
+                <h3>Price</h3>
+                <label class="filter-option"><input type="radio" name="sort" value="asc" checked> Cheapest to Expensive</label>
+                <label class="filter-option"><input type="radio" name="sort" value="desc"> Expensive to Cheapest</label>
+            </div>
+            <div class="filter-group">
+                <h3>Rating</h3>
+                <label class="filter-option"><input type="radio" name="rating" value="0" checked> Any Rating</label>
+                <label class="filter-option"><input type="radio" name="rating" value="5"> 5 Stars</label>
+                <label class="filter-option"><input type="radio" name="rating" value="4"> 4 Stars & Up</label>
+                <label class="filter-option"><input type="radio" name="rating" value="3"> 3 Stars & Up</label>
+            </div>
+        </aside>
+
+        <main class="product-grid" id="productGrid">
+            <!-- Products injected here -->
+        </main>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+    </button>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+
+    <script>
+        // Fetch products from Supabase and render
+        async function fetchProducts() {
+            const { data: products, error } = await supabase
+                .from('products')
+                .select('*');
+
+            if (error) {
+                console.error('Error fetching products:', error.message);
+                document.getElementById('productGrid').innerHTML = '<p style="text-align:center;">Error loading products.</p>';
+                return;
+            }
+
+            // We store the fetched products globally so the filters can still work if needed
+            window.allProducts = products;
+            renderProducts(products);
+        }
+
+        function renderProducts(productsToRender) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+
+            const products = productsToRender || window.allProducts || [];
+
+            // Get Filters
+            const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
+            const sortOrder = document.querySelector('input[name="sort"]:checked').value;
+            const minRating = parseFloat(document.querySelector('input[name="rating"]:checked').value);
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+            // Filter & Sort
+            let filtered = products.filter(p => {
+                const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(p.category);
+                const matchesRating = p.rating >= minRating;
+                const matchesSearch = p.name.toLowerCase().includes(searchQuery);
+                return matchesCategory && matchesRating && matchesSearch;
+            });
+
+            filtered.sort((a, b) => {
+                return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">No products found matching your criteria.</p>';
+                return;
+            }
+
+            filtered.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-image" onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">
+                        <img src="${p.image || 'images/placeholder.jpg'}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
+                    <div class="product-info">
+                        <h3 onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">${p.name}</h3>
+                        <p>${p.category}</p>
+                        <div class="rating">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <span>${p.rating}</span>
+                        </div>
+                        <div class="product-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="price">RM${parseFloat(p.price).toFixed(2)}</span>
+                            <button class="btn-add" style="padding: 10px 20px; font-size: 0.9rem;" onclick="addToCart('${p.id}')">Add to Cart</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function addToCart(productId) {
+            const session = await getSession();
+            if (!session) {
+                alert('Please log in to add items to your cart.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const userId = session.user.id;
+
+            const { data: existingCart, error: fetchError } = await supabase
+                .from('cart')
+                .select('id, quantity')
+                .eq('user_id', userId)
+                .eq('product_id', productId)
+                .maybeSingle();
+
+            if (fetchError) {
+                console.error('Error checking cart:', fetchError.message);
+                return;
+            }
+
+            if (existingCart) {
+                const { error: updateError } = await supabase
+                    .from('cart')
+                    .update({ quantity: existingCart.quantity + 1 })
+                    .eq('id', existingCart.id);
+                    
+                if (updateError) {
+                    alert('Failed to update cart quantity.');
+                } else {
+                    alert('Cart updated successfully!');
+                }
+            } else {
+                const { error: insertError } = await supabase
+                    .from('cart')
+                    .insert([{ user_id: userId, product_id: productId, quantity: 1 }]);
+                    
+                if (insertError) {
+                    alert('Failed to add item to cart.');
+                } else {
+                    alert('Item added to cart!');
+                }
+            }
+        }
+
+        // Event Listeners
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', () => renderProducts());
+        });
+        document.getElementById('searchInput').addEventListener('keyup', () => renderProducts());
+
+        // Initial Render
+        document.addEventListener('DOMContentLoaded', fetchProducts);
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>

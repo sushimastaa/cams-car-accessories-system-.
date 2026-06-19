@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Override global body styles for scrolling layout */
+        body {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 40px;
+        }
+
+        /* Navbar (Consistent with home.html) */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: rgba(24, 27, 33, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-weight: 600; font-size: 1.2rem; color: var(--text-main); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-main); }
+        
+        /* Avatar Icon */
+        .avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .avatar-icon:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+
+        /* Settings Layout */
+        .settings-wrapper {
+            display: flex;
+            max-width: 1200px;
+            margin: 40px auto;
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        /* Sidebar Menu */
+        .settings-sidebar {
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        .settings-menu {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            position: sticky;
+            top: 100px;
+        }
+
+        .menu-item {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent-color);
+            border-left-color: var(--accent-color);
+        }
+
+        /* Main Content Area */
+        .settings-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .settings-header {
+            margin-bottom: 30px;
+        }
+        .settings-header h1 { margin: 0; font-size: 2rem; color: var(--text-main); }
+        .settings-header p { color: var(--text-muted); margin-top: 8px; }
+
+        .settings-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .settings-section h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group.full-width { grid-column: span 2; }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Custom input style */
+        .input-field-profile {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .input-field-profile:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-save { width: auto; padding: 10px 24px; }
+        .btn-danger { background-color: #ef4444; color: white; border: none; }
+        .btn-danger:hover { background-color: #dc2626; }
+
+        /* Vehicle Card */
+        .vehicle-card {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .vehicle-info { display: flex; flex-direction: column; gap: 8px; }
+        .vehicle-info-label { color: var(--text-muted); font-size: 0.9rem; }
+        .vehicle-info-value { color: var(--text-main); font-weight: 500; }
+
+        /* History/Transaction Table */
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .transaction-table th {
+            background-color: var(--input-bg);
+            color: var(--text-muted);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .transaction-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .transaction-table tr:hover {
+            background-color: var(--input-bg);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-completed { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-pending { background-color: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .status-cancelled { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+        @media (max-width: 900px) {
+            .settings-wrapper {
+                flex-direction: column;
+            }
+            .settings-sidebar {
+                width: 100%;
+            }
+            .settings-menu {
+                display: flex;
+                position: static;
+            }
+            .menu-item {
+                flex: 1;
+                border-left: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+            .menu-item:last-child {
+                border-bottom: none;
+            }
+            .menu-item.active {
+                border-left: none;
+                border-bottom: 3px solid var(--accent-color);
+            }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .vehicle-card { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .settings-wrapper { margin: 20px auto; gap: 15px; }
+            .settings-section { padding: 20px; }
+            .transaction-table { font-size: 0.9rem; }
+            .transaction-table th, .transaction-table td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">CAMS</div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="cart.html">Cart</a>
+            <a href="garage.html">Garage</a>
+            <a href="settings.html" class="avatar-icon" style="color: var(--text-main);" title="Settings">👤</a>
+            <a href="login.html">Logout</a>
+        </div>
+    </nav>
+
+    <div class="settings-wrapper">
+        <!-- Sidebar Menu -->
+        <aside class="settings-sidebar">
+            <div class="settings-menu">
+                <button class="menu-item active" data-tab="account" onclick="switchTab(event, 'account')">Account Details</button>
+                <button class="menu-item" data-tab="vehicles" onclick="switchTab(event, 'vehicles')">My Vehicles</button>
+                <button class="menu-item" data-tab="password" onclick="switchTab(event, 'password')">Change Password</button>
+                <button class="menu-item" data-tab="history" onclick="switchTab(event, 'history')">History</button>
+                <button class="menu-item" data-tab="logout" onclick="switchTab(event, 'logout')">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="settings-content">
+            <!-- Account Details Section -->
+            <div id="account" class="settings-section active">
+                <div class="settings-header">
+                    <h1>Account Details</h1>
+                    <p>Manage your profile information</p>
+                </div>
+                <form>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="input-field-profile" value="Admin User" placeholder="Enter your username">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="input-field-profile" value="admin@cams.com" placeholder="Enter your email">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Home Address</label>
+                            <textarea class="input-field-profile" rows="3" placeholder="Enter your full home address">123 Automotive Lane, Garage City, GC 45678</textarea>
+                        </div>
+                    </div>
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn btn-primary btn-save">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- My Vehicles Section -->
+            <div id="vehicles" class="settings-section">
+                <div class="settings-header">
+                    <h1>My Vehicles</h1>
+                    <p>Your registered vehicles from the garage</p>
+                </div>
+                <div id="vehicles-container">
+                    <!-- Vehicles will be loaded from garage.html -->
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-primary" onclick="loadVehicles()">Refresh Vehicles</button>
+                    <a href="garage.html" class="btn btn-primary" style="margin-left: 10px;">Go to Garage</a>
+                </div>
+            </div>
+
+            <!-- Change Password Section -->
+            <div id="password" class="settings-section">
+                <div class="settings-header">
+                    <h1>Change Password</h1>
+                    <p>Update your account password</p>
+                </div>
+                <form>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="input-field-profile" placeholder="Enter your current password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="input-field-profile" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="input-field-profile" placeholder="Confirm new password">
+                        </div>
+                    </div>
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn btn-primary btn-save">Update Password</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- History Section -->
+            <div id="history" class="settings-section">
+                <div class="settings-header">
+                    <h1>Transaction History</h1>
+                    <p>Your booking and transaction records</p>
+                </div>
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <!-- History records will be loaded from booking.html -->
+                    </tbody>
+                </table>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-primary" onclick="loadHistory()">Refresh History</button>
+                    <a href="booking.html" class="btn btn-primary" style="margin-left: 10px;">View Bookings</a>
+                </div>
+            </div>
+
+            <!-- Logout Section -->
+            <div id="logout" class="settings-section">
+                <div class="settings-header">
+                    <h1>Logout</h1>
+                    <p>Sign out of your account</p>
+                </div>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Are you sure you want to sign out? You will need to log in again to access your account.</p>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-danger" onclick="logout()">Sign Out</button>
+                    <button type="button" class="btn btn-primary" onclick="switchTab(event, 'account')">Cancel</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+    </button>
+
+    <script>
+        // Theme Toggle Logic
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Tab Switching Logic
+        function switchTab(event, tabName) {
+            event.preventDefault();
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.settings-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Remove active class from all menu items
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
+            
+            // Show selected section
+            const selectedSection = document.getElementById(tabName);
+            if (selectedSection) {
+                selectedSection.classList.add('active');
+            }
+            
+            // Add active class to clicked menu item
+            const clickedItem = event.target;
+            if (clickedItem && clickedItem.classList.contains('menu-item')) {
+                clickedItem.classList.add('active');
+            }
+            
+            // Load content if needed
+            if (tabName === 'vehicles') {
+                loadVehicles();
+            } else if (tabName === 'history') {
+                loadHistory();
+            }
+        }
+
+        // Load vehicles from garage.html (simulated)
+        function loadVehicles() {
+            const container = document.getElementById('vehicles-container');
+            // This would typically fetch data from garage.html or an API
+            // For now, displaying sample vehicles
+            const vehiclesHTML = `
+                <div class="vehicle-card">
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">Vehicle Name</div>
+                        <div class="vehicle-info-value">Toyota Camry 2020</div>
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">License Plate</div>
+                        <div class="vehicle-info-value">ABC-1234</div>
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">Color</div>
+                        <div class="vehicle-info-value">Silver</div>
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">Status</div>
+                        <div class="vehicle-info-value">Active</div>
+                    </div>
+                </div>
+                <div class="vehicle-card">
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">Vehicle Name</div>
+                        <div class="vehicle-info-value">Honda CR-V 2019</div>
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">License Plate</div>
+                        <div class="vehicle-info-value">XYZ-5678</div>
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">Color</div>
+                        <div class="vehicle-info-value">Black</div>
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="vehicle-info-label">Status</div>
+                        <div class="vehicle-info-value">Active</div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = vehiclesHTML;
+        }
+
+        // Load transaction history from booking.html (simulated)
+        function loadHistory() {
+            const tbody = document.getElementById('history-body');
+            // This would typically fetch data from booking.html or an API
+            // For now, displaying sample history
+            const historyHTML = `
+                <tr>
+                    <td>#TXN001</td>
+                    <td>2024-06-15</td>
+                    <td>Oil Filter, Air Filter</td>
+                    <td>$49.99</td>
+                    <td><span class="status-badge status-completed">Completed</span></td>
+                </tr>
+                <tr>
+                    <td>#TXN002</td>
+                    <td>2024-06-10</td>
+                    <td>Brake Pads</td>
+                    <td>$89.99</td>
+                    <td><span class="status-badge status-completed">Completed</span></td>
+                </tr>
+                <tr>
+                    <td>#TXN003</td>
+                    <td>2024-06-05</td>
+                    <td>Battery Replacement</td>
+                    <td>$159.99</td>
+                    <td><span class="status-badge status-pending">Pending</span></td>
+                </tr>
+                <tr>
+                    <td>#TXN004</td>
+                    <td>2024-05-28</td>
+                    <td>Spark Plugs</td>
+                    <td>$34.99</td>
+                    <td><span class="status-badge status-completed">Completed</span></td>
+                </tr>
+            `;
+            tbody.innerHTML = historyHTML;
+        }
+
+        // Logout Function
+        function logout() {
+            localStorage.removeItem('userSession');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize history on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadHistory();
+        });
+    </script>
+</body>
+</html>

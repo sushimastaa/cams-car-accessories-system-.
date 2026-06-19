@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Layout overrides for consistency with other pages */
+        body {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden; /* Added for consistency */
+            padding-bottom: 40px;
+        }
+
+        /* Navbar (Consistent with shop.html and home.html) */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-weight: 600; font-size: 1.2rem; color: var(--text-main); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-main); }
+        
+        /* Avatar Icon */
+        .avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .avatar-icon:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+
+        /* Search Bar (Consistent with shop.html and home.html) */
+        .search-container { flex: 1; max-width: 400px; margin: 0 20px; }
+        .search-input { width: 100%; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-main); outline: none; font-family: inherit; }
+        .search-input:focus { border-color: var(--accent-color); }
+
+        /* Existing cart-specific styles */
+        .cart-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+        .cart-items { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; }
+        .cart-header h1 { margin: 0; font-size: 1.5rem; color: var(--text-main); }
+        .item-row { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color); gap: 20px; }
+        .item-row:last-child { border-bottom: none; }
+        .item-image { width: 80px; height: 80px; background-color: var(--input-bg); border-radius: 8px; object-fit: cover; }
+        .item-details { flex: 1; }
+        .item-name { font-weight: 600; color: var(--text-main); margin-bottom: 4px; display: block; }
+        .item-price { color: var(--text-muted); font-size: 0.9rem; }
+        .item-quantity { display: flex; align-items: center; gap: 12px; }
+        .qty-btn { background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .qty-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .qty-val { width: 30px; text-align: center; color: var(--text-main); font-weight: 500; }
+        .item-total { font-weight: 600; color: var(--text-main); width: 100px; text-align: right; }
+        .btn-remove { color: #ef4444; background: none; border: none; cursor: pointer; padding: 4px; opacity: 0.7; transition: opacity 0.2s; }
+        .btn-remove:hover { opacity: 1; }
+        .summary-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; height: fit-content; position: sticky; top: 100px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text-muted); }
+        .summary-total { border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px; font-size: 1.2rem; font-weight: 600; color: var(--text-main); }
+        .btn-checkout { width: 100%; margin-top: 24px; }
+
+        /* Discount section styling */
+        .discount-container { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color); }
+        .discount-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-main); font-family: inherit; margin-bottom: 10px; box-sizing: border-box; outline: none; }
+        .discount-input:focus { border-color: var(--accent-color); }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+            width: 100%;
+            padding: 8px;
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background-color: var(--input-bg);
+        }
+
+        @media (max-width: 768px) { .cart-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">CAMS</div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search products...">
+        </div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="cart.html" style="color: var(--text-main);">Cart</a>
+            <a href="garage.html">Garage</a>
+            <a href="settings.html" class="avatar-icon" title="Settings">👤</a>
+            <a href="login.html">Logout</a>
+        </div>
+    </nav>
+
+    <div class="cart-container">
+        <div class="cart-items">
+            <div class="cart-header">
+                <h1>Shopping Cart</h1>
+                <span id="cartCount" style="color: var(--text-muted); font-size: 0.9rem;">0 items</span>
+            </div>
+            <div id="cartList"></div>
+        </div>
+
+        <div class="summary-card">
+            <h3>Order Summary</h3>
+            <div class="summary-row"><span>Subtotal</span><span id="subtotal">RM0.00</span></div>
+            <div class="summary-row" id="discountRow" style="display: none; color: #10b981;">
+                <span>Discount</span><span id="discountAmount">-RM0.00</span>
+            </div>
+            <div class="summary-row"><span>Tax (6%)</span><span id="tax">RM0.00</span></div>
+            <div class="summary-row"><span>Shipping</span><span>Free</span></div>
+            <div class="summary-row summary-total"><span>Total</span><span id="total">RM0.00</span></div>
+            
+            <div class="discount-container">
+                <input type="text" id="discountCode" class="discount-input" placeholder="Enter discount code (e.g. SAVE10)">
+                <button class="btn-outline" onclick="applyDiscount()">Apply Code</button>
+                <p id="discountMsg" style="font-size: 0.8rem; margin-top: 8px; display: none;"></p>
+            </div>
+
+            <button class="btn btn-primary btn-checkout" onclick="handleCheckout()">Checkout with ToyyibPay</button>
+        </div>
+    </div>
+
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+    </button>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+
+    <script>
+        let appliedDiscountRate = 0;
+
+        function applyDiscount() {
+            const codeInput = document.getElementById('discountCode');
+            const msg = document.getElementById('discountMsg');
+            const code = codeInput.value.trim().toUpperCase();
+
+            const discounts = { 'SAVE10': 0.10, 'PROMO20': 0.20 };
+
+            if (discounts[code]) {
+                appliedDiscountRate = discounts[code];
+                msg.textContent = `Code applied: ${appliedDiscountRate * 100}% discount!`;
+                msg.style.color = '#10b981';
+            } else {
+                appliedDiscountRate = 0;
+                msg.textContent = 'Invalid discount code.';
+                msg.style.color = '#ef4444';
+            }
+            msg.style.display = 'block';
+            loadCart(); 
+        }
+
+        async function loadCart() {
+            const session = await getSession();
+            if (!session) {
+                document.getElementById('cartList').innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Please log in to view your cart.</p>';
+                updateTotals(0);
+                document.getElementById('cartCount').textContent = '0 items';
+                return;
+            }
+
+            const userId = session.user.id;
+
+            const { data: cartItems, error } = await supabase
+                .from('cart')
+                .select(`
+                    id, 
+                    quantity, 
+                    product_id, 
+                    products(name, price, image)
+                `)
+                .eq('user_id', userId);
+
+            if (error) {
+                console.error('Error fetching cart:', error.message);
+                document.getElementById('cartList').innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Error loading cart.</p>';
+                return;
+            }
+
+            renderCart(cartItems);
+        }
+
+        function renderCart(cartItems) {
+            const list = document.getElementById('cartList');
+            const countLabel = document.getElementById('cartCount');
+            list.innerHTML = '';
+
+            if (!cartItems || cartItems.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0;">Your cart is empty.</p>';
+                updateTotals(0);
+                countLabel.textContent = '0 items';
+                return;
+            }
+
+            countLabel.textContent = cartItems.length + ' items';
+            let subtotal = 0;
+
+            cartItems.forEach(item => {
+                const product = Array.isArray(item.products) ? item.products[0] : item.products;
+                
+                const itemTotal = parseFloat(product.price) * item.quantity;
+                subtotal += itemTotal;
+
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                row.innerHTML = `
+                    <img src="${product.image || 'images/placeholder.jpg'}" alt="${product.name}" class="item-image">
+                    <div class="item-details">
+                        <span class="item-name">${product.name}</span>
+                        <span class="item-price">RM${parseFloat(product.price).toFixed(2)}</span>
+                    </div>
+                    <div class="item-quantity">
+                        <span class="qty-val" style="padding: 0 10px;">Qty: ${item.quantity}</span>
+                    </div>
+                    <div class="item-total">RM${itemTotal.toFixed(2)}</div>
+                    <button class="btn-remove" onclick="removeFromCart('${item.id}')">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                `;
+                list.appendChild(row);
+            });
+            updateTotals(subtotal);
+        }
+
+        async function removeFromCart(cartId) {
+            const { error } = await supabase
+                .from('cart')
+                .delete()
+                .eq('id', cartId);
+
+            if (error) {
+                console.error('Error removing item:', error.message);
+                alert('Failed to remove item.');
+            } else {
+                loadCart();
+            }
+        }
+
+        function updateTotals(subtotal) {
+            const discount = subtotal * appliedDiscountRate;
+            const discountedSubtotal = subtotal - discount;
+            const tax = discountedSubtotal * 0.06;
+            const total = discountedSubtotal + tax;
+
+            document.getElementById('subtotal').textContent = 'RM' + subtotal.toFixed(2);
+            
+            const discountRow = document.getElementById('discountRow');
+            if (discount > 0) {
+                document.getElementById('discountAmount').textContent = '-RM' + discount.toFixed(2);
+                discountRow.style.display = 'flex';
+            } else {
+                discountRow.style.display = 'none';
+            }
+
+            document.getElementById('tax').textContent = 'RM' + tax.toFixed(2);
+            document.getElementById('total').textContent = 'RM' + total.toFixed(2);
+        }
+
+        async function handleCheckout() {
+            const session = await getSession();
+            if (!session) {
+                alert("Please log in to checkout.");
+                return;
+            }
+            
+            // Invoke the securely deployed Edge Function
+            const { data, error } = await supabase.functions.invoke('create-toyyibpay-bill', {
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                }
+            });
+            
+            if (error) {
+                console.error("Checkout Error:", error);
+                alert("Failed to initiate checkout.");
+            } else if (data && data.checkoutUrl) {
+                // Redirect to ToyyibPay Payment Gateway
+                window.location.href = data.checkoutUrl;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCart);
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║         🚗 CAR ACCESSORIES MANAGEMENT SYSTEM - LIVE SERVER QUICK START        ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: AUTOMATIC SETUP (Easiest Method)                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. Double-click: SETUP_PROJECT.bat
+   ✓ Copies all files to New folder\htdocs\cams\
+
+2. Double-click: START_LIVESERVER.bat
+   ✓ Starts Apache & MySQL
+   ✓ Opens your project in browser
+
+3. Visit: http://localhost/cams/
+   ✓ You're online!
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 2: CREATE DATABASE (One-time setup)                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. Open: http://localhost/phpmyadmin/
+2. Click: "New" (on left sidebar)
+3. Database name: cams_db
+4. Click: "Create"
+5. Done!
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ QUICK REFERENCE                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+📍 PROJECT URL:
+   http://localhost/cams/
+
+📍 DATABASE ADMIN:
+   http://localhost/phpmyadmin/
+   Username: root
+   Password: (empty)
+
+📍 XAMPP CONTROL:
+   http://localhost/
+
+📍 PROJECT FILES LOCATION:
+   New folder\htdocs\cams\
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+❌ "Connection Refused"
+   → Start Apache: New folder\apache_start.bat
+   → Start MySQL: New folder\mysql_start.bat
+
+❌ "Page Not Found"
+   → Check files are in: New folder\htdocs\cams\
+   → Run: SETUP_PROJECT.bat
+
+❌ "Database Connection Error"
+   → Create database 'cams_db' in phpMyAdmin
+   → Ensure MySQL is running
+
+❌ "Port 80 in Use"
+   → Change to port 8080 in New folder\apache\conf\httpd.conf
+   → Access via: http://localhost:8080/cams/
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILES CREATED FOR LIVE SERVER                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+✓ SETUP_PROJECT.bat
+  └─ Automatically copies project files to XAMPP
+
+✓ START_LIVESERVER.bat
+  └─ Starts Apache & MySQL servers
+
+✓ config.php
+  └─ Centralized configuration (used by all PHP files)
+
+✓ db_config.php (updated)
+  └─ Now uses config.php for database connection
+
+✓ SETUP_LIVESERVER.md
+  └─ Detailed setup documentation
+
+✓ README_LIVESERVER.md
+  └─ Complete reference guide
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ API ENDPOINTS                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+POST   api_register.php      Register new user
+POST   api_garage.php        Manage vehicles
+GET    api_garage.php        Get vehicle data
+DELETE api_garage.php        Remove vehicle
+POST   api_admin.php         Admin operations
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STOPPING LIVE SERVER                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Option 1: Click "Stop" in XAMPP Control Panel
+Option 2: Double-click apache_stop.bat
+Option 3: Double-click mysql_stop.bat
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ DATABASE CREDENTIALS                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Host:     localhost
+Database: cams_db
+User:     root
+Password: (empty)
+Port:     3306
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ IMPORTANT NOTES                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+⚠️ Keep XAMPP services running while developing
+⚠️ Clear browser cache (Ctrl+Shift+Del) if changes don't appear
+⚠️ Restart Apache after modifying .php files
+⚠️ Use config.php instead of db_config.php for new code
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                    ✅ Ready to Start Development! ✅
+
+              Run: SETUP_PROJECT.bat → START_LIVESERVER.bat
+
+═══════════════════════════════════════════════════════════════════════════════

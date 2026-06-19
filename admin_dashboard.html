@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CAMS</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Dashboard Specific Layout Overrides */
+        body {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--input-bg);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--input-bg);
+            color: var(--accent-color);
+        }
+
+        .nav-item svg { width: 20px; height: 20px; }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 40px;
+            position: relative;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-title h2 { margin: 0; color: var(--text-main); font-size: 1.8rem; }
+        .header-title p { margin: 5px 0 0; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background-color: rgba(249, 115, 22, 0.1);
+            color: var(--accent-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stat-info h3 { margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 600; }
+        .stat-info p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Data Tables */
+        .data-table-container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 { margin: 0; color: var(--text-main); font-size: 1.1rem; }
+
+        table { width: 100%; border-collapse: collapse; }
+        
+        th, td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--input-bg);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: rgba(0,0,0,0.02); }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-active, .status-completed, .status-approved, .status-instock { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .status-pending, .status-low { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .status-inactive, .status-cancelled, .status-out { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+        /* Action Buttons */
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { color: var(--accent-color); background-color: var(--input-bg); }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+        /* Section Visibility */
+        .dashboard-section { display: none; animation: fadeIn 0.3s ease; }
+        .dashboard-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; padding: 20px 10px; }
+            .sidebar-header span, .nav-item span { display: none; }
+            .nav-item { justify-content: center; }
+            .sidebar-header { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 8px; color: var(--accent-color);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span>Admin</span>
+        </div>
+        <nav>
+            <a class="nav-item active" onclick="showSection('overview', this)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>Overview</span>
+            </a>
+            <a class="nav-item" onclick="showSection('users', this)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <span>User Accounts</span>
+            </a>
+            <a class="nav-item" onclick="showSection('vehicles', this)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4v-4H5a2 2 0 01-2-2V5z"></path></svg>
+                <span>Vehicles</span>
+            </a>
+            <a class="nav-item" onclick="showSection('inventory', this)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span>Inventory</span>
+            </a>
+            <a class="nav-item" onclick="showSection('orders', this)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <span>Orders & Bookings</span>
+            </a>
+            <a class="nav-item" onclick="showSection('reports', this)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Reports</span>
+            </a>
+        </nav>
+        <div style="margin-top: auto;">
+            <a href="login.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" onclick="toggleTheme()" style="position: absolute; top: 30px; right: 30px; bottom: auto;">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+
+        <!-- Overview Section -->
+        <section id="overview" class="dashboard-section active">
+            <div class="header-bar">
+                <div class="header-title">
+                    <h2>Dashboard Overview</h2>
+                    <p>System performance and key metrics.</p>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></div>
+                    <div class="stat-info"><h3 id="totalUsers">1,248</h3><p>Total Users</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg></div>
+                    <div class="stat-info"><h3 id="pendingOrders">56</h3><p>Pending Orders</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                    <div class="stat-info"><h3 id="monthlyRevenue">$12.4k</h3><p>Monthly Revenue</p></div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <div class="table-header">
+                    <h3>Recent Orders</h3>
+                    <button class="btn btn-primary btn-sm" style="width: auto; margin: 0;" onclick="showSection('orders', document.querySelectorAll('.nav-item')[3])">View All</button>
+                </div>
+                <table id="recentOrdersTable">
+                    <thead>
+                        <tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users" class="dashboard-section">
+            <div class="header-bar">
+                <div class="header-title"><h2>User Management</h2><p>Approve, edit, or deactivate user accounts.</p></div>
+                <!-- Removed "Add User" button as per request -->
+            </div>
+            <div class="data-table-container">
+                <table id="usersTable">
+                    <thead>
+                        <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Vehicles Section -->
+        <section id="vehicles" class="dashboard-section">
+            <div class="header-bar">
+                <div class="header-title"><h2>Vehicle Management</h2><p>Add and manage vehicle data.</p></div>
+                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="openModal('vehicleModal')">Add Vehicle</button>
+            </div>
+            <div class="data-table-container">
+                <table id="vehiclesTable">
+                    <thead>
+                        <tr><th>ID</th><th>Year</th><th>Make</th><th>Model</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <!-- Inventory Section -->
+        <section id="inventory" class="dashboard-section">
+            <div class="header-bar">
+                <div class="header-title"><h2>Inventory Management</h2><p>Update stock availability and product information.</p></div>
+                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="openModal('productModal')">Add Product</button>
+            </div>
+            <div class="data-table-container">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr><th>Product Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Orders Section -->
+        <section id="orders" class="dashboard-section">
+            <div class="header-bar">
+                <div class="header-title"><h2>Orders & Bookings</h2><p>Manage customer orders and service bookings.</p></div>
+                <div class="search-container" style="margin-left: auto; margin-right: 20px;">
+                    <input type="text" id="orderSearchInput" class="input-field-garage" placeholder="Search by Customer or Order ID..." style="width: 250px; padding: 8px 12px;">
+                </div>
+                <div class="filter-group">
+                    <label for="orderStatusFilter" class="form-label" style="margin-bottom: 0; margin-right: 10px;">Filter by Status:</label>
+                    <select id="orderStatusFilter" class="input-field-garage" style="width: auto; padding: 8px 12px;">
+                        <option value="all">All</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+            <div class="data-table-container">
+                <table id="allOrdersTable">
+                    <thead>
+                        <tr><th>ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <!-- Reports Section -->
+        <section id="reports" class="dashboard-section">
+            <div class="header-bar">
+                <div class="header-title"><h2>Reports</h2><p>Generate reports for transactions and orders.</p></div>
+                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="alert('Generating PDF Report...')">Export PDF</button>
+            </div>
+            <div class="stats-grid" id="reportsStatsGrid">
+                <div class="stat-card" style="flex-direction: column; align-items: flex-start;">
+                    <h3>Sales Report</h3>
+                    <p>Total Revenue: <span id="totalRevenueReport">...</span></p>
+                    <div style="width: 100%; height: 10px; background: var(--input-bg); border-radius: 5px; margin-top: 10px; overflow: hidden;">
+                        <div id="salesProgressBar" style="width: 0%; height: 100%; background: var(--accent-color);"></div>
+                    </div>
+                </div>
+                <div class="stat-card" style="flex-direction: column; align-items: flex-start;">
+                    <h3>Order Volume</h3>
+                    <p>Total Orders: <span id="orderVolumeReport">...</span></p>
+                    <div style="width: 100%; height: 10px; background: var(--input-bg); border-radius: 5px; margin-top: 10px; overflow: hidden;">
+                        <div id="ordersProgressBar" style="width: 0%; height: 100%; background: #10b981;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="data-table-container" id="transactionHistoryTable">
+                <div class="table-header"><h3>Transaction History</h3></div>
+                <table>
+                    <thead><tr><th>Transaction ID</th><th>Date</th><th>User</th><th>Amount</th><th>Method</th></tr></thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div id="productModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--text-main); margin-bottom: 20px;">Add New Product</h2>
+            <form id="addProductForm">
+                <div class="form-group"><label class="form-label">Name</label><input type="text" id="pName" class="input-field-garage" required></div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="pCat" class="input-field-garage">
+                        <option value="Android Player">Android Player</option>
+                        <option value="Speaker">Speaker</option>
+                        <option value="Floor Mats">Floor Mats</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group"><label class="form-label">Price (RM)</label><input type="number" id="pPrice" class="input-field-garage" required></div>
+                    <div class="form-group"><label class="form-label">Stock</label><input type="number" id="pStock" class="input-field-garage" required></div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                    <button type="button" class="btn" style="background: var(--input-bg); color: var(--text-main);" onclick="closeModal('productModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Vehicle Modal -->
+    <div id="vehicleModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color: var(--text-main); margin-bottom: 20px;">Add Vehicle to localServer</h2>
+            <form id="addVehicleAdminForm">
+                <div class="form-group"><label class="form-label">Year</label><input type="number" id="vYear" class="input-field-garage" placeholder="2024" required></div>
+                <div class="form-group"><label class="form-label">Make</label><input type="text" id="vMake" class="input-field-garage" placeholder="Toyota" required></div>
+                <div class="form-group"><label class="form-label">Model</label><input type="text" id="vModel" class="input-field-garage" placeholder="Vios" required></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">Add to localServer</button>
+                    <button type="button" class="btn" style="background: var(--input-bg); color: var(--text-main);" onclick="closeModal('vehicleModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set the initial active section to 'overview' and load its data
+            showSection('overview', document.querySelector('.nav-item.active'));
+        });
+
+        async function showSection(sectionId, navElement) {
+            // Hide all sections
+            document.querySelectorAll('.dashboard-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+        
+            // Update nav active state
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            navElement.classList.add('active');
+
+            // Load data based on the selected section
+            switch (sectionId) {
+                case 'overview':
+                    await loadOverviewData();
+                    await loadRecentOrders();
+                    break;
+                case 'users':
+                    await loadUsersData();
+                    break;
+                case 'vehicles':
+                    await loadVehiclesData();
+                    break;
+                case 'inventory':
+                    await loadInventoryData();
+                    break;
+                case 'orders':
+                    await loadAllOrdersData();
+                    break;
+                case 'inventory':
+                    await loadInventoryData();
+                    break;
+                case 'orders':
+                    await loadAllOrdersData();
+                    break;
+                case 'reports':
+                    await loadReportsData();
+                    break;
+            }
+        }
+
+        async function fetchData(action) {
+            try {
+                // Persist for Inventory and Vehicles as well
+                if (action === 'getVehicles') {
+                    const localVehicles = JSON.parse(localStorage.getItem('availableVehicles')) || [];
+                    // In a real app, you might also fetch from an API and merge/prioritize
+                    return localVehicles;
+                }
+
+                if (action === 'getStats') {
+                    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+                    const totalUsers = registeredUsers.length;
+
+                    const allBookings = JSON.parse(localStorage.getItem('allBookings')) || [];
+                    let pendingOrders = 0;
+                    let monthlyRevenue = 0;
+
+                    allBookings.forEach(booking => {
+                        if (booking.status === 'pending') {
+                            pendingOrders++;
+                        }
+                        monthlyRevenue += parseFloat(booking.amount || 0);
+                    });
+
+                    let formattedMonthlyRevenue;
+                    if (monthlyRevenue >= 1000) {
+                        formattedMonthlyRevenue = (monthlyRevenue / 1000).toFixed(1) + 'k';
+                    } else {
+                        formattedMonthlyRevenue = monthlyRevenue.toFixed(2);
+                    }
+
+                    return {
+                        totalUsers: totalUsers,
+                        pendingOrders: pendingOrders,
+                        monthlyRevenue: formattedMonthlyRevenue
+                    };
+                }
+
+                if (action === 'getReports') {
+                    const allBookings = JSON.parse(localStorage.getItem('allBookings')) || [];
+                    let totalRevenue = 0;
+                    let totalOrders = allBookings.length;
+                    const transactionHistory = [];
+
+                    allBookings.forEach(booking => {
+                        totalRevenue += parseFloat(booking.amount || 0);
+                        transactionHistory.push({
+                            id: booking.id,
+                            order_date: booking.booking_date, // Assuming booking_date is the transaction date
+                            user: booking.customer_name,
+                            amount: parseFloat(booking.amount || 0),
+                            method: 'Card' // Mock method, as not stored in booking
+                        });
+                    });
+
+                    transactionHistory.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
+
+                    return {
+                        salesReport: totalRevenue.toFixed(2),
+                        orderVolume: totalOrders,
+                        transactionHistory: transactionHistory
+                    };
+                }
+
+                if (action === 'getInventory') {
+                    const localInv = JSON.parse(localStorage.getItem('inventory')) || [];
+                    const response = await fetch(`api_admin.php?action=${action}`).catch(() => null);
+                    let apiData = [];
+                    if (response && response.ok) apiData = await response.json();
+                    return [...localInv, ...(Array.isArray(apiData) ? apiData : [])];
+                }
+
+                let localData = [];
+                if (action === 'getRecentOrders' || action === 'getAllOrders' || action === 'getStats' || action === 'getUsers') {
+                    localData = JSON.parse(localStorage.getItem('allBookings')) || [];
+                }
+                // Handle fetching registered users from localStorage
+                if (action === 'getUsers') {
+                    const localRegisteredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+                    // In a real application, you might merge this with API data or use it as the primary source.
+                    // For this prototype, we'll return the locally registered users.
+                    return localRegisteredUsers;
+                }
+
+                const response = await fetch(`api_admin.php?action=${action}`).catch(() => null);
+                let apiData = null;
+                
+                if (response && response.ok) {
+                    apiData = await response.json();
+                } else {
+                    // Mock data if fetch fails
+                    apiData = action === 'getStats' ? { totalUsers: 1248, pendingOrders: 56, monthlyRevenue: "12.4k" } : [];
+                }
+
+                if (action === 'getStats' && localData.length > 0) {
+                    apiData.pendingOrders = parseInt(apiData.pendingOrders) + localData.length;
+                } else if ((action === 'getRecentOrders' || action === 'getAllOrders') && localData.length > 0) {
+                    return [...localData, ...(Array.isArray(apiData) ? apiData : [])];
+                }
+
+                return apiData;
+            } catch (error) {
+                console.error(`Error fetching ${action} data:`, error);
+                return action === 'getStats' ? { totalUsers: 0, pendingOrders: 0, monthlyRevenue: "0" } : [];
+            }
+        }
+
+        async function loadOverviewData() {
+            const data = await fetchData('getStats');
+            if (data) {
+                document.getElementById('totalUsers').textContent = data.totalUsers;
+                document.getElementById('pendingOrders').textContent = data.pendingOrders;
+                document.getElementById('monthlyRevenue').textContent = `$${data.monthlyRevenue}`;
+            }
+        }
+
+        async function loadRecentOrders() {
+            const orders = await fetchData('getRecentOrders');
+            const tableBody = document.querySelector('#recentOrdersTable tbody');
+            tableBody.innerHTML = ''; // Clear existing data
+
+            if (orders && orders.length > 0) {
+                orders.forEach(order => {
+                    const row = `
+                        <tr>
+                            <td>#ORD-${order.id}</td>
+                            <td>${order.customer_name}</td>
+                            <td>${order.order_date}</td>
+                            <td>$${parseFloat(order.amount).toFixed(2)}</td>
+                            <td><span class="status-badge status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No recent orders.</td></tr>';
+            }
+        }
+
+        async function loadUsersData() {
+            const users = await fetchData('getUsers');
+            const tableBody = document.querySelector('#usersTable tbody');
+            tableBody.innerHTML = '';
+
+            if (users && users.length > 0) {
+                users.forEach(user => {
+                    const statusClass = user.status === 'active' ? 'status-active' : (user.status === 'pending' ? 'status-pending' : 'status-inactive');
+                    const row = `
+                        <tr>
+                            <td>${user.username}</td>
+                            <td>${user.email}</td>
+                            <td>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
+                            <td><span class="status-badge ${statusClass}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span></td>
+                            <td>
+                                <button class="action-btn" title="Edit"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                <button class="action-btn" title="Deactivate" style="color: #ef4444;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg></button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>';
+            }
+        }
+
+        async function loadVehiclesData() {
+            const vehicles = await fetchData('getVehicles');
+            const tableBody = document.querySelector('#vehiclesTable tbody');
+            tableBody.innerHTML = '';
+
+            if (vehicles && vehicles.length > 0) {
+                vehicles.forEach(vehicle => {
+                    const row = `
+                        <tr>
+                            <td>${vehicle.id}</td>
+                            <td>${vehicle.year}</td>
+                            <td>${vehicle.make}</td>
+                            <td>${vehicle.model}</td>
+                            <td>
+                                <button class="action-btn" title="Edit"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                <button class="action-btn" title="Delete" style="color: #ef4444;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No vehicles added yet.</td></tr>';
+            }
+        }
+
+        async function loadInventoryData() {
+            const inventory = await fetchData('getInventory');
+            const tableBody = document.querySelector('#inventoryTable tbody');
+            tableBody.innerHTML = '';
+
+            if (inventory && inventory.length > 0) {
+                inventory.forEach(item => {
+                    const statusClass = item.status === 'in_stock' ? 'status-instock' : (item.status === 'low_stock' ? 'status-low' : 'status-out');
+                    const row = `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.category}</td>
+                            <td>$${parseFloat(item.price).toFixed(2)}</td>
+                            <td>${item.stock}</td>
+                            <td><span class="status-badge ${statusClass}">${item.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</span></td>
+                            <td><button class="action-btn" onclick="alert('Edit Product ID: ${item.id}')"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button></td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No inventory items found.</td></tr>';
+            }
+        }
+
+        async function loadAllOrdersData() {
+            let orders = await fetchData('getAllOrders');
+            const tableBody = document.querySelector('#allOrdersTable tbody');
+            tableBody.innerHTML = '';
+
+            const searchQuery = document.getElementById('orderSearchInput').value.toLowerCase();
+            const selectedStatus = document.getElementById('orderStatusFilter').value;
+
+            // Apply status filter
+            if (selectedStatus !== 'all') {
+                orders = orders.filter(order => order.status === selectedStatus);
+            }
+            // Apply search filter
+            if (searchQuery) {
+                orders = orders.filter(order =>
+                    order.customer_name.toLowerCase().includes(searchQuery) || order.id.toString().includes(searchQuery));
+            }
+            if (orders && orders.length > 0) {
+                orders.forEach(order => {
+                    const statusClass = order.status === 'completed' ? 'status-completed' : (order.status === 'pending' ? 'status-pending' : 'status-cancelled');
+                    const row = `
+                        <tr>
+                            <td>#ORD-${order.id}</td>
+                            <td>${order.customer_name}</td>
+                            <td>${order.order_date}</td>
+                            <td>$${parseFloat(order.amount).toFixed(2)}</td>
+                            <td><span class="status-badge ${statusClass}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></td>
+                            <td>
+                                <button class="action-btn" title="View Order"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No orders found.</td></tr>';
+            }
+        }
+
+        async function loadReportsData() {
+            const data = await fetchData('getReports');
+            const transactionsTableBody = document.querySelector('#transactionHistoryTable tbody');
+            transactionsTableBody.innerHTML = '';
+
+            if (data) {
+                document.getElementById('totalRevenueReport').textContent = `$${data.salesReport}`;
+                document.getElementById('orderVolumeReport').textContent = data.orderVolume;
+
+                // Simple progress bar logic (mock percentage)
+                const salesProgress = Math.min(100, (parseFloat(data.salesReport.replace(/,/g, '')) / 50000) * 100); // Assuming target $50k
+                const ordersProgress = Math.min(100, (data.orderVolume / 500) * 100); // Assuming target 500 orders
+                document.getElementById('salesProgressBar').style.width = `${salesProgress}%`;
+                document.getElementById('ordersProgressBar').style.width = `${ordersProgress}%`;
+
+                if (data.transactionHistory && data.transactionHistory.length > 0) {
+                    data.transactionHistory.forEach(transaction => {
+                        const row = `
+                            <tr>
+                                <td>TXN-${transaction.id}</td>
+                                <td>${transaction.order_date}</td>
+                                <td>${transaction.user}</td>
+                                <td>$${parseFloat(transaction.amount).toFixed(2)}</td>
+                                <td>${transaction.method}</td>
+                            </tr>
+                        `;
+                        transactionsTableBody.innerHTML += row;
+                    });
+                } else {
+                    transactionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No transaction history.</td></tr>';
+                }
+            }
+        }
+
+        // Modal Control
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // Handle Add Product
+        document.getElementById('addProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const localInv = JSON.parse(localStorage.getItem('inventory')) || [];
+            const newProd = {
+                id: Date.now(),
+                name: document.getElementById('pName').value,
+                category: document.getElementById('pCat').value,
+                price: parseFloat(document.getElementById('pPrice').value),
+                stock: parseInt(document.getElementById('pStock').value),
+                status: 'in_stock',
+                rating: 5.0,
+                image: 'images/placeholder.jpg',
+                desc: "Added via Admin Dashboard"
+            };
+            localInv.unshift(newProd);
+            localStorage.setItem('inventory', JSON.stringify(localInv));
+            alert('Product added successfully!');
+            closeModal('productModal');
+            loadInventoryData();
+        });
+
+        // Handle Add Vehicle (link to garage.html)
+        document.getElementById('addVehicleAdminForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const localVehicles = JSON.parse(localStorage.getItem('availableVehicles')) || [];
+            const newVehicle = {
+                id: Date.now(),
+                year: document.getElementById('vYear').value,
+                make: document.getElementById('vMake').value,
+                model: document.getElementById('vModel').value
+            };
+            localVehicles.push(newVehicle);
+            localStorage.setItem('availableVehicles', JSON.stringify(localVehicles));
+            alert('Vehicle added successfully! It will appear in the Garage section.');
+            closeModal('vehicleModal');
+            loadVehiclesData(); // Refresh the vehicles table
+        });
+
+        // Theme Toggle Logic (Consistent with other pages)
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+    <script>
+        document.getElementById('orderSearchInput').addEventListener('keyup', loadAllOrdersData);
+        document.getElementById('orderStatusFilter').addEventListener('change', loadAllOrdersData);
+    </script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Layout overrides for scrolling */
+        body {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 40px;
+        }
+
+        /* Navbar (Consistent with other pages) */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-weight: 600; font-size: 1.2rem; color: var(--text-main); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-main); }
+        
+        /* Avatar Icon */
+        .avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .avatar-icon:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+
+        /* Product Details Layout */
+        .product-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        /* Image Section */
+        .product-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .main-image-container {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            overflow: hidden;
+        }
+        .main-image-container svg { width: 120px; height: 120px; }
+
+        /* Info Section */
+        .product-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .breadcrumb { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
+        .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--accent-color); }
+
+        .product-title { font-size: 2rem; color: var(--text-main); margin: 0 0 12px; line-height: 1.2; }
+        .product-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; color: #fbbf24; font-size: 1rem; }
+        .product-price { font-size: 1.75rem; font-weight: 600; color: var(--text-main); margin-bottom: 24px; }
+        
+        .product-description { color: var(--text-muted); line-height: 1.6; margin-bottom: 32px; font-size: 1rem; }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 1rem;
+            flex: 1;
+            max-width: 200px;
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background-color: var(--input-bg);
+        }
+
+        /* Features/Specs */
+        .specs-box {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .specs-box h3 { margin-top: 0; color: var(--text-main); margin-bottom: 16px; }
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+        .spec-row:last-child { border-bottom: none; }
+        .spec-label { color: var(--text-muted); }
+        .spec-value { color: var(--text-main); font-weight: 500; }
+
+        @media (max-width: 768px) {
+            .product-container { grid-template-columns: 1fr; }
+            .action-buttons { flex-direction: column; }
+            .btn-lg { max-width: 100%; }
+        }
+    </style>
+    <style>
+        /* Customer Feedback Section */
+        .product-feedback {
+            grid-column: 1 / -1; /* Span across both columns */
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+        .product-feedback h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            font-size: 1.5rem;
+        }
+        .star-rating {
+            display: flex;
+            gap: 5px;
+            font-size: 2rem;
+            color: var(--text-muted); /* Default star color */
+            margin-bottom: 20px;
+        }
+        .star-rating .star {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating .star.selected,
+        .star-rating .star:hover,
+        .star-rating .star.hover-effect { /* For hover effect before selection */
+            color: #fbbf24; /* Accent color for selected/hovered stars */
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">CAMS</div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="cart.html">Cart</a>
+            <a href="garage.html">Garage</a>
+            <a href="settings.html" class="avatar-icon" title="Settings">👤</a>
+            <a href="login.html">Logout</a>
+        </div>
+    </nav>
+
+    <div class="product-container">
+        <!-- Left Column: Images -->
+        <div class="product-gallery">
+            <div class="main-image-container">
+                <img id="productImage" src="" alt="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                <svg id="imagePlaceholder" width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+            </div>
+        </div>
+
+        <!-- Right Column: Info -->
+        <div class="product-info">
+            <div class="breadcrumb">
+                <a href="shop.html">Shop</a> / <span id="categoryBreadcrumb">Category</span> / <span id="productBreadcrumb">Product Name</span>
+            </div>
+            
+            <h1 class="product-title" id="productName">Product Name</h1>
+            
+            <div class="product-rating">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <span id="productRating">0.0</span> <span style="color: var(--text-muted); font-size: 0.9rem;">(128 reviews)</span>
+            </div>
+
+            <div class="product-price" id="productPrice">RM0.00</div>
+
+            <p class="product-description" id="productDesc">
+                Product description goes here.
+            </p>
+
+            <div class="quantity-selector" style="margin-bottom: 20px;">
+                <label for="productQuantity" style="display: block; margin-bottom: 8px; color: var(--text-muted);">Quantity:</label>
+                <input type="number" id="productQuantity" value="1" min="1" max="99" style="width: 80px; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-main);">
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary btn-lg" id="btnOrder">Order</button>
+                <button class="btn btn-outline btn-lg" id="btnBookInstall">Book for Installation</button>
+            </div>
+
+            <div class="specs-box">
+                <h3>Product Specifications</h3>
+                <div class="spec-row"><span class="spec-label">Brand</span><span class="spec-value">TechDrive</span></div>
+                <div class="spec-row"><span class="spec-label">Warranty</span><span class="spec-value">1 Year</span></div>
+                <div class="spec-row"><span class="spec-label">Compatibility</span><span class="spec-value">Universal</span></div>
+                <div class="spec-row"><span class="spec-label">In Stock</span><span class="spec-value">Available</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Feedback Section -->
+    <div class="product-feedback product-container">
+        <h2>Customer Feedback</h2>
+        <div class="star-rating" id="starRating">
+            <span class="star" data-value="1">&#9733;</span>
+            <span class="star" data-value="2">&#9733;</span>
+            <span class="star" data-value="3">&#9733;</span>
+            <span class="star" data-value="4">&#9733;</span>
+            <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <textarea id="feedbackComment" placeholder="Share your thoughts on this product..." rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-main); font-family: inherit; font-size: 1rem; resize: vertical; margin-bottom: 20px; box-sizing: border-box;"></textarea>
+        <button class="btn btn-primary" id="submitFeedback">Submit Feedback</button>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+    </button>
+
+    <script>
+        // Simple Logic to populate data based on URL param (Mock)
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        // Mock Data (Subset of shop.html data)
+        const products = {
+            '1': { name: "10\" Android Player", category: "Android Player", price: 150.00, rating: 4.5, desc: "High-definition 10-inch Android Player with GPS and Bluetooth. Features a responsive touchscreen and support for various media formats.", image: "images/android_player.jpg" },
+            '2': { name: "Bass Pro Speakers", category: "Speaker", price: 85.00, rating: 4.2, desc: "Deep bass and crystal clear highs for the ultimate audio experience. Easy to install and compatible with most car audio systems.", image: "images/bass_pro_speakers.jpg" },
+            '3': { name: "All-Weather Floor Mats", category: "Floor Mats", price: 45.00, rating: 4.8, desc: "Durable rubber mats designed to protect your vehicle's floor from dirt, mud, and water. Easy to clean and maintain.", image: "images/floor_mats.jpg" },
+            '4': { name: "LED Headlamps Kit", category: "Headlamps", price: 120.00, rating: 4.6, desc: "Bright white LED bulbs for superior visibility at night. Energy efficient and long-lasting performance.", image: "images/led_headlamps.jpg" },
+            '5': { name: "Silicone Wiper Blades", category: "Wiper", price: 25.00, rating: 4.0, desc: "Long-lasting silicone blades that repel water and ensure a clear view during heavy rain. Quiet operation.", image: "images/wiper_blades.jpg" },
+            '6': { name: "HD Reverse Camera", category: "Camera", price: 60.00, rating: 4.3, desc: "Wide-angle HD camera with night vision for safe parking. Waterproof design and easy integration with dashboard displays.", image: "images/reverse_camera.jpg" },
+            '7': { name: "Custom Plate Fonts", category: "Plate Number Fonts", price: 15.00, rating: 5.0, desc: "Stylish and legal font styles for your vehicle registration plate. High-quality material that resists fading.", image: "images/plate_fonts.jpg" },
+            '8': { name: "Sony Component Speakers", category: "Speaker", price: 110.00, rating: 4.7, desc: "Premium component system with separate tweeters and woofers for a balanced soundstage.", image: "images/sony_speakers.jpg" },
+            '9': { name: "Premium Carpet Mats", category: "Floor Mats", price: 35.00, rating: 4.1, desc: "Soft, plush carpet mats that add a touch of luxury to your interior. Anti-slip backing keeps them in place.", image: "images/carpet_mats.jpg" },
+            '10': { name: "Halogen Headlamps", category: "Headlamps", price: 40.00, rating: 3.8, desc: "Standard replacement halogen bulbs for reliable lighting. Cost-effective solution for headlight replacement.", image: "images/halogen_headlamps.jpg" },
+        };
+
+        if (productId && products[productId]) {
+            const p = products[productId];
+            document.getElementById('productName').textContent = p.name;
+            document.getElementById('productBreadcrumb').textContent = p.name;
+            document.getElementById('categoryBreadcrumb').textContent = p.category;
+            document.getElementById('productPrice').textContent = 'RM' + p.price.toFixed(2);
+            document.getElementById('productRating').textContent = p.rating;
+            document.getElementById('productDesc').textContent = p.desc;
+            
+            // Display product image
+            if (p.image) {
+                const img = document.getElementById('productImage');
+                img.src = p.image;
+                img.alt = p.name;
+                img.style.display = 'block';
+                document.getElementById('imagePlaceholder').style.display = 'none';
+            }
+
+            // Add to Cart Logic
+            document.getElementById('btnOrder').onclick = function() {
+                let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
+                const quantity = parseInt(document.getElementById('productQuantity').value, 10);
+                cart.push({
+                    id: productId,
+                    name: p.name,
+                    price: p.price,
+                    image: p.image,
+                    quantity: quantity
+                });
+                localStorage.setItem('shoppingCart', JSON.stringify(cart));
+                alert(quantity + 'x ' + p.name + ' has been added to your cart!');
+            };
+
+            // Link Booking Button
+            document.getElementById('btnBookInstall').onclick = function() {
+                window.location.href = 'booking.html?product=' + encodeURIComponent(p.name);
+            };
+        } else {
+            document.querySelector('.product-info').innerHTML = '<h2>Product not found</h2><a href="shop.html">Return to Shop</a>';
+        }
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>

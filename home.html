@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Car Accessories Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Override global body styles from style.css for a scrolling page layout */
+        body {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 40px;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo { font-weight: 600; font-size: 1.2rem; color: var(--text-main); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-main); }
+        
+        /* Avatar Icon */
+        .avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .avatar-icon:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            transform: scale(1.1);
+        }
+
+        /* Search Bar */
+        .search-container { flex: 1; max-width: 400px; margin: 0 20px; }
+        .search-input {
+            width: 100%;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+            font-family: inherit;
+        }
+        .search-input:focus { border-color: var(--accent-color); }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 40px;
+            text-align: center;
+            background-color: var(--bg-color);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        .hero h1 { font-size: 3rem; margin: 0 0 16px; color: var(--text-main); position: relative; z-index: 1; }
+        .hero p { color: var(--text-muted); max-width: 600px; margin: 0 auto 32px; line-height: 1.6; position: relative; z-index: 1; }
+        .hero .tech-drawing { opacity: 0.05; top: 50%; transform: translate(-50%, -50%) scale(1.5); }
+
+        /* Section Headers */
+        .section-header { padding: 0 40px 20px; display: flex; justify-content: space-between; align-items: end; }
+        .section-header h2 { font-size: 1.5rem; margin: 0; color: var(--text-main); }
+        .section-header a { color: var(--accent-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+        
+        .filter-buttons { display: flex; gap: 8px; margin-top: 8px; }
+        .filter-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; font-family: inherit; }
+        .filter-btn:hover, .filter-btn.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
+        /* Horizontal Scroll Container */
+        .scroll-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 24px;
+            padding: 0 40px 40px;
+            scroll-behavior: smooth;
+            scrollbar-width: none; /* Firefox */
+        }
+        .scroll-container::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+
+        /* Product Card */
+        .product-card {
+            min-width: 260px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card:hover { transform: translateY(-4px); border-color: var(--accent-color); }
+        .product-image {
+            height: 160px;
+            background-color: var(--input-bg);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+        .product-info h3 { font-size: 1rem; margin: 0 0 4px; color: var(--text-main); }
+        .product-info p { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 16px; }
+        .product-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+        .price { font-weight: 600; color: var(--text-main); }
+        
+        /* Promotional Section */
+        .promo-section {
+            margin: 20px 40px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, #1d4ed8 100%);
+            border-radius: 16px;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .promo-content { z-index: 1; max-width: 500px; }
+        .promo-content h2 { font-size: 2rem; margin: 0 0 16px; color: white; }
+        .promo-content p { color: rgba(255,255,255,0.9); margin-bottom: 24px; }
+        .promo-bg-icon { position: absolute; right: -40px; bottom: -40px; width: 250px; height: 250px; opacity: 0.1; color: white; }
+
+        .footer-nav { text-align: center; margin-top: 60px; color: var(--text-muted); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">CAMS</div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search products..." onkeyup="searchProducts()">
+        </div>
+        <div class="nav-links">
+            <a href="shop.html">Shop</a>
+            <a href="garage.html">Garage</a>
+            <a href="cart.html">Cart</a>
+            <a href="shop.html">Deals</a>
+            <a href="settings.html" class="avatar-icon" title="Settings">👤</a>
+            <a href="login.html">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <svg class="tech-drawing" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.2"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            <circle cx="200" cy="200" r="150" fill="none" stroke="#ffffff" stroke-width="1" />
+            <circle cx="200" cy="200" r="140" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-dasharray="5,5" />
+            <line x1="20" y1="200" x2="380" y2="200" stroke="#ffffff" stroke-width="0.5" />
+            <line x1="200" y1="20" x2="200" y2="380" stroke="#ffffff" stroke-width="0.5" />
+        </svg>
+        <h1>Upgrade Your Ride</h1>
+        <p>Discover premium parts and accessories tailored for your vehicle. Performance, style, and reliability in one place.</p>
+        <a href="shop.html" class="btn btn-primary" style="display: inline-block; width: auto; padding: 12px 32px; margin: 0;">Shop Now</a>
+    </section>
+
+    <!-- Top Rated Parts (Horizontal Scroll) -->
+    <div class="section-header">
+        <div>
+            <h2>Top Rated Parts</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterSelection('all', this)">All</button>
+                <button class="filter-btn" onclick="filterSelection('performance', this)">Performance</button>
+                <button class="filter-btn" onclick="filterSelection('exterior', this)">Exterior</button>
+                <button class="filter-btn" onclick="filterSelection('interior', this)">Interior</button>
+            </div>
+        </div>
+        <a href="shop.html">View All</a>
+    </div>
+    <div class="scroll-container">
+    </div>
+
+    <!-- Promotional Section -->
+    <section class="promo-section">
+        <div class="promo-content">
+            <h2>Summer Sale is Live</h2>
+            <p>Get up to 30% off on all interior accessories. Upgrade your cabin comfort today.</p>
+            <button class="btn" style="background: white; color: var(--accent-color); width: auto; border: none; padding: 12px 24px;">Explore Deals</button>
+        </div>
+        <svg class="promo-bg-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+    </section>
+
+    <div class="footer-nav">
+        &copy; 2023 Car Accessories Management System. All rights reserved.
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+    </button>
+
+    <script>
+        // Mock Data (from shop.html, extended with subCategory for filtering)
+        const baseProducts = [
+            { id: 1, name: "10\" Android Player", category: "Android Player", price: 150.00, rating: 4.5, image: "images/android_player.jpg", description: "High-definition 10-inch Android Player with GPS and Bluetooth. Features a responsive touchscreen and support for various media formats.", subCategory: "interior" },
+            { id: 2, name: "Bass Pro Speakers", category: "Speaker", price: 85.00, rating: 4.2, image: "images/bass_pro_speakers.jpg", description: "Deep bass and crystal clear highs for the ultimate audio experience. Easy to install and compatible with most car audio systems.", subCategory: "interior" },
+            { id: 3, name: "All-Weather Floor Mats", category: "Floor Mats", price: 45.00, rating: 4.8, image: "images/floor_mats.jpg", description: "Durable rubber mats designed to protect your vehicle's floor from dirt, mud, and water. Easy to clean and maintain.", subCategory: "interior" },
+            { id: 4, name: "LED Headlight Bulbs", category: "Headlamps", price: 120.00, rating: 4.6, image: "images/led_headlamps.jpg", description: "Bright white LED bulbs for superior visibility at night. Energy efficient and long-lasting performance.", subCategory: "exterior" },
+            { id: 5, name: "Silicone Wiper Blades", category: "Wiper", price: 25.00, rating: 4.0, image: "images/wiper_blades.jpg", description: "Long-lasting silicone blades that repel water and ensure a clear view during heavy rain. Quiet operation.", subCategory: "exterior" },
+            { id: 6, name: "HD Reverse Camera", category: "Camera", price: 60.00, rating: 4.3, image: "images/reverse_camera.jpg", description: "Wide-angle HD camera with night vision for safe parking. Waterproof design and easy integration with dashboard displays.", subCategory: "exterior" },
+            { id: 7, name: "Custom Plate Fonts", category: "Plate Number Fonts", price: 15.00, rating: 5.0, image: "images/plate_fonts.jpg", description: "Stylish and legal font styles for your vehicle registration plate. High-quality material that resists fading.", subCategory: "exterior" },
+            { id: 8, name: "Sony Component Speakers", category: "Speaker", price: 110.00, rating: 4.7, image: "images/sony_speakers.jpg", description: "Premium component system with separate tweeters and woofers for a balanced soundstage.", subCategory: "interior" },
+            { id: 9, name: "Premium Carpet Mats", category: "Floor Mats", price: 35.00, rating: 4.1, image: "images/carpet_mats.jpg", description: "Soft, plush carpet mats that add a touch of luxury to your interior. Anti-slip backing keeps them in place.", subCategory: "interior" },
+            { id: 10, name: "Halogen Headlamps", category: "Headlamps", price: 40.00, rating: 3.8, image: "images/halogen_headlamps.jpg", description: "Standard replacement halogen bulbs for reliable lighting. Cost-effective solution for headlight replacement.", subCategory: "exterior" },
+            { id: 11, name: "Performance Brake Kit", category: "Brakes", price: 299.00, rating: 4.9, image: "images/performance_brake_kit.jpg", description: "High-performance brake kit for enhanced stopping power.", subCategory: "performance" },
+            { id: 12, name: "Sport Suspension Kit", category: "Suspension", price: 189.00, rating: 4.7, image: "images/sport_suspension.jpg", description: "Upgrade your car's handling with this sport suspension kit.", subCategory: "performance" },
+            { id: 13, name: "Carbon Fiber Dash Kit", category: "Interior", price: 129.00, rating: 4.4, image: "images/carbon_fiber_dash_kit.jpg", description: "Stylish carbon fiber interior trim for a modern look.", subCategory: "interior" }
+        ];
+
+        const localInventory = JSON.parse(localStorage.getItem('inventory')) || [];
+        const allProducts = [...localInventory, ...baseProducts];
+
+        function renderTopRatedProducts(filterCategory = 'all') {
+            const scrollContainer = document.querySelector('.scroll-container');
+            scrollContainer.innerHTML = ''; // Clear existing products
+
+            let productsToDisplay = [...allProducts]; // Use a copy of all products
+
+            // Sort by rating (descending) for "Top Rated"
+            productsToDisplay.sort((a, b) => b.rating - a.rating);
+
+            // Apply category filter if not 'all'
+            if (filterCategory !== 'all') {
+                productsToDisplay = productsToDisplay.filter(p => p.subCategory === filterCategory);
+            }
+
+            // Limit to a reasonable number for the home page, e.g., top 8
+            productsToDisplay = productsToDisplay.slice(0, 8);
+
+            if (productsToDisplay.length === 0) {
+                scrollContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No products found in this category.</p>';
+                return;
+            }
+
+            productsToDisplay.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.dataset.category = p.subCategory; // Add data-category for filtering
+                card.innerHTML = `
+                    <div class="product-image" onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">
+                        <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
+                    <div class="product-info">
+                        <h3 onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">${p.name}</h3>
+                        <p>${p.description ? p.description.substring(0, 50) + '...' : ''}</p>
+                        <div class="product-footer">
+                            <span class="price">RM${p.price.toFixed(2)}</span>
+                            <button class="btn btn-primary" style="width: auto; margin: 0; padding: 8px 16px; font-size: 0.85rem;" onclick="addToCart(${p.id}); event.stopPropagation();">Add</button>
+                        </div>
+                    </div>
+                `;
+                scrollContainer.appendChild(card);
+            });
+        }
+
+        function filterSelection(category, btnElement) {
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            renderTopRatedProducts(category);
+        }
+
+        function searchProducts() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toUpperCase();
+            const scrollContainer = document.querySelector('.scroll-container');
+            scrollContainer.innerHTML = ''; // Clear current display
+
+            let filteredProducts = allProducts.filter(p => p.name.toUpperCase().includes(filter));
+
+            if (filteredProducts.length === 0) {
+                scrollContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No products found matching your search.</p>';
+                return;
+            }
+
+            filteredProducts.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.dataset.category = p.subCategory; // Add data-category for filtering
+                card.innerHTML = `
+                    <div class="product-image" onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">
+                        <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
+                    <div class="product-info">
+                        <h3 onclick="window.location.href='product_details.html?id=${p.id}'" style="cursor: pointer;">${p.name}</h3>
+                        <p>${p.description ? p.description.substring(0, 50) + '...' : ''}</p>
+                        <div class="product-footer">
+                            <span class="price">RM${p.price.toFixed(2)}</span>
+                            <button class="btn btn-primary" style="width: auto; margin: 0; padding: 8px 16px; font-size: 0.85rem;" onclick="addToCart(${p.id}); event.stopPropagation();">Add</button>
+                        </div>
+                    </div>
+                `;
+                scrollContainer.appendChild(card);
+            });
+        }
+
+        // Call renderTopRatedProducts on page load
+        renderTopRatedProducts();
+
+        function addToCart(productId) {
+            const p = allProducts.find(prod => prod.id === productId);
+            if (!p) return;
+
+            let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
+            const existingItem = cart.find(item => item.id == productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: productId.toString(), name: p.name, price: p.price,
+                    image: p.image, quantity: 1
+                });
+            }
+
+            localStorage.setItem('shoppingCart', JSON.stringify(cart));
+            alert(p.name + ' added to cart!');
+        }
+        
+        // Theme Toggle Logic
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>
